@@ -24,10 +24,11 @@ from agentron.messages import (
 class Ansi:
     RESET = '\033[0m'
     DIM = '\033[2m'
+    RED = '\033[31m'
+    GREEN = '\033[32m'
+    BLUE = '\033[34m'
     CYAN = '\033[36m'
     BRIGHT_WHITE_BOLD = '\033[1;97m'
-    GREEN = '\033[32m'
-    RED = '\033[31m'
 
 
 class ConsoleRenderer:
@@ -41,10 +42,12 @@ class ConsoleRenderer:
         stream=sys.stdout,
         *,
         use_color: bool | None = None,
+        display_system_prompt=False
     ):
         self.session = session
         self.stream = stream
         self.use_color = self._detect_color_support() if use_color is None else use_color
+        self.display_system_prompt = display_system_prompt
         self.subscriptions = SubscriptionStore()
 
         # Assistant messages that were already printed from streaming updates.
@@ -96,7 +99,8 @@ class ConsoleRenderer:
         self._print_prefixed('User: ', message['content']['text'])
 
     def _print_system_message(self, message: SystemMessage) -> None:
-        self._print_prefixed('System: ', message['content']['text'])
+        if self.display_system_prompt:
+            self._print_prefixed('System: ', message['content']['text'])
 
     def _on_streaming_message(self, message: StreamingMessage) -> None:
         partial = message['partial']
@@ -146,26 +150,29 @@ class ConsoleRenderer:
 
         self._printed_tool_call_ids.add(call_id)
 
-        prefix = self._colorize('Tool Call:', Ansi.CYAN)
-        name = self._colorize(tool_call['name'], Ansi.BRIGHT_WHITE_BOLD)
-        self._print(f'{prefix} {name}')
+        self._print_prefixed(
+            'Tool: ',
+            self._colorize(tool_call['name'], Ansi.BRIGHT_WHITE_BOLD),
+            eol='\n',
+        )
 
     def _render_tool_result_message(self, message: ToolResultMessage) -> None:
-        tool_name = message['tool_name']
+        tool_name = self._colorize(f'[{message["tool_name"]}]', Ansi.DIM)
         success = message['result']['success']
+        prefix = '    ▶ '
 
         if success:
             status = self._colorize('Success', Ansi.GREEN)
-            self._print(f'  {tool_name}: {status}')
+            self._print(f'{prefix}{status} {tool_name}')
             return
 
         status = self._colorize('Error', Ansi.RED)
         error_text = message['result'].get('error')
         if error_text:
-            self._print(f'  {tool_name}: {status} ({error_text})')
+            self._print(f'{prefix}{status} {tool_name}: {error_text}')
             return
 
-        self._print(f'  {tool_name}: {status}')
+        self._print(f'{prefix}{status} {tool_name}')
 
     def _activate_stream_segment(self, segment: tuple[str, int]) -> None:
         if self._active_stream_segment == segment:
@@ -190,13 +197,13 @@ class ConsoleRenderer:
         self.stream.flush()
         self._active_stream_line_open = not text.endswith('\n')
 
-    def _print_prefixed(self, prefix: str, text: str) -> None:
-        print(self._colorize(prefix, Ansi.CYAN), end='')
-        self._print(text)
+    def _print_prefixed(self, prefix: str, text: str, eol='\n\n') -> None:
+        self.stream.write(self._colorize(prefix, Ansi.BLUE))
+        self._print(text, eol=eol)
 
-    def _print(self, text: str) -> None:
+    def _print(self, text: str, eol='\n\n') -> None:
         self.stream.write(text)
-        self.stream.write('\n\n')
+        self.stream.write(eol)
         self.stream.flush()
         self._active_stream_line_open = False
 
