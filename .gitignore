@@ -1,0 +1,27 @@
+# macOS temporary files
+.DS_Store
+
+# Python compiled files
+*.pyc
+
+# Build files
+dist
+build/*
+*.egg-info
+
+# Node
+node_modules
+
+# Editors
+.vscode
+
+# Package builds
+packages/**/build
+packages/**/dist
+
+# Internal
+scratch/*
+prompts.md
+
+# Tools
+.ruff_cache

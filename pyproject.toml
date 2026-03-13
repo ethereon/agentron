@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentron"
+version = "0.1.0"
+description = "A Python library for building AI agents."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Saumitro Dasgupta", email = "sd@cs.stanford.edu" }]
+
+
+[tool.setuptools]
+packages = ["agentron"]
+
+[tool.ruff]
+line-length = 200
+
+[tool.ruff.format]
+quote-style = "single"

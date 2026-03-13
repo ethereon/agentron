@@ -1,0 +1,20 @@
+{
+    "name": "@ethereon/agentron-flux",
+    "version": "0.1.0",
+    "description": "LLM communication RPC server",
+    "license": "MIT",
+    "author": "Saumitro Dasgupta",
+    "type": "module",
+    "main": "main.js",
+    "scripts": {
+        "test": "vitest"
+    },
+    "dependencies": {
+        "@mariozechner/pi-ai": "^0.57.1"
+    },
+    "devDependencies": {
+        "prettier": "^3.8.1",
+        "typescript": "^5.9.3",
+        "vitest": "^4.0.18"
+    }
+}
