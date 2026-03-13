@@ -20,6 +20,11 @@ export const enum ModelApi {
     OPENAI_RESPONSES = 'openai-responses'
 }
 
+export const enum ModelInputModality {
+    TEXT = 'text',
+    IMAGE = 'image'
+}
+
 export interface Model {
     id: string;
     name: string;
@@ -27,7 +32,7 @@ export interface Model {
     provider: string;
     base_url: string;
     reasoning: boolean;
-    input: ('text' | 'image')[];
+    input: ModelInputModality[];
     cost: ModelPricing;
     context_window: number;
     max_tokens: number;

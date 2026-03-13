@@ -22,6 +22,11 @@ class ModelApi(StrEnum):
     OPENAI_RESPONSES = 'openai-responses'
 
 
+class ModelInputModality(StrEnum):
+    TEXT = 'text'
+    IMAGE = 'image'
+
+
 class Model(TypedDict):
     id: str
     name: str
@@ -29,7 +34,7 @@ class Model(TypedDict):
     provider: str
     base_url: str
     reasoning: bool
-    input: Sequence[Literal['text', 'image']]
+    input: Sequence[ModelInputModality]
     cost: ModelPricing
     context_window: int
     max_tokens: int
