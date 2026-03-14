@@ -17,6 +17,7 @@ packages = ["agentron"]
 
 [tool.ruff]
 line-length = 200
+target-version = "py312"
 
 [tool.ruff.format]
 quote-style = "single"
