@@ -210,4 +210,4 @@ class FluxExistingProcess:
 
 
 def get_flux_path() -> str:
-    return str(Path(__file__).parent.parent.parent / 'flux' / 'dist' / 'main.js')
+    return str(Path(__file__).parent.parent.parent / 'packages' / 'flux' / 'dist' / 'main.js')

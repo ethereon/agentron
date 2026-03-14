@@ -17,18 +17,13 @@ from typing import Any, ForwardRef, Literal, NotRequired, TypeAliasType, Union, 
 
 
 PROJECT_ROOT = Path(__file__).parent.parent
-FLUX_ROOT = PROJECT_ROOT / 'flux'
+FLUX_ROOT = PROJECT_ROOT / 'packages' / 'flux'
 
 PREAMBLE = '// Auto-generated file. Do not edit directly.\n\n'
 
 
 def is_typed_dict_class(obj: Any) -> bool:
-    return (
-        isinstance(obj, type)
-        and issubclass(obj, dict)
-        and hasattr(obj, '__required_keys__')
-        and hasattr(obj, '__optional_keys__')
-    )
+    return isinstance(obj, type) and issubclass(obj, dict) and hasattr(obj, '__required_keys__') and hasattr(obj, '__optional_keys__')
 
 
 def to_ts_literal(value: Any) -> str:
