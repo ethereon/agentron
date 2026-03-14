@@ -1,6 +1,6 @@
 import type { AgentMessage, StreamingMessage } from './agent-message.js';
 import type { ToolSchema } from './tool-schema.js';
-import { ModelReasoningLevel } from './model.js';
+import type { ModelReasoningLevel } from './model.js';
 
 export interface ToolSet {
     tools: ToolSchema[];
@@ -25,4 +25,4 @@ export interface LLMRequest {
     reasoning?: ModelReasoningLevel;
 }
 
-export const kDefaultReasoningLevel = ModelReasoningLevel.MEDIUM;
+export const kDefaultReasoningLevel: ModelReasoningLevel = 'medium';

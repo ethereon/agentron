@@ -98,12 +98,12 @@ export class UnixRpcServer extends EventEmitter {
 
     // Register a named RPC method.  The handler may be synchronous or async.
     // Re-registering an existing name overwrites the previous handler.
-    register(method: string, handler: RpcHandler, options?: RpcHandlerOptions): void {
+    register<T extends string>(method: T, handler: RpcHandler, options?: RpcHandlerOptions): void {
         this.handlers.set(method, { handler, options });
     }
 
     // Remove a previously registered method.
-    unregister(method: string): boolean {
+    unregister<T extends string>(method: T): boolean {
         return this.handlers.delete(method);
     }
 
@@ -169,13 +169,17 @@ export class UnixRpcServer extends EventEmitter {
     }
 
     // Send a JSON-RPC notification to a specific connected client.
-    notify(socket: net.Socket, method: string, params: unknown[] = []): void {
+    notify<MethodKind extends string>(
+        socket: net.Socket,
+        method: MethodKind,
+        params: unknown[] = []
+    ): void {
         this.sendNotification(socket, { method, params });
     }
 
     // Broadcast a JSON-RPC notification to all currently connected clients.
     // Returns the number of clients the notification was attempted for.
-    notifyAll(method: string, params: unknown[] = []): number {
+    notifyAll<MethodKind extends string>(method: MethodKind, params: unknown[] = []): number {
         let sentCount = 0;
         for (const socket of this.activeConnections) {
             this.sendNotification(socket, { method, params });

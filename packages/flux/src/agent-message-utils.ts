@@ -1,16 +1,16 @@
-import {
+import type {
     ContentType,
     MessageType,
-    type TextContent,
-    type AgentMessage,
-    type ToolResult,
-    type ToolResultMessage,
-    type ToolCall
+    TextContent,
+    AgentMessage,
+    ToolResult,
+    ToolResultMessage,
+    ToolCall
 } from './agent-message.js';
 
 export function textContent(text: string): TextContent {
     return {
-        type: ContentType.TEXT,
+        type: 'text',
         text
     };
 }
@@ -29,7 +29,7 @@ export function firstMessageofType<T extends MessageType>(
 
 export function makeToolResultMessage(call: ToolCall, result: ToolResult): ToolResultMessage {
     return {
-        mtype: MessageType.TOOL_RESULT,
+        mtype: 'tool_result',
         id: crypto.randomUUID(),
         timestamp: Date.now(),
         call_id: call.id,

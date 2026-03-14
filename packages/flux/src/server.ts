@@ -10,8 +10,8 @@ import { isModel, isModelReasoningLevel } from './model.validation.js';
 import { isToolSchema } from './tool-schema.validation.js';
 import { isAgentMessage } from './agent-message.validation.js';
 import {
-    RequestKind,
-    NotificationKind,
+    type NotificationKind,
+    type RequestKind,
     type SessionStartRequest,
     type TransmitRequest
 } from './api.js';
@@ -33,8 +33,8 @@ export class RpcServer {
 
     constructor(params: RpcServerParams) {
         const server = (this.server = new UnixRpcServer({ socketPath: params.socketPath }));
-        server.register(RequestKind.SESSION_START, this.startSession.bind(this));
-        server.register(RequestKind.TRANSMIT, this.handleTransmit.bind(this), {
+        server.register<RequestKind>('session_start', this.startSession.bind(this));
+        server.register<RequestKind>('transmit', this.handleTransmit.bind(this), {
             wantsSocket: true
         });
 
@@ -105,7 +105,7 @@ export class RpcServer {
                 sessionId: request.session_id,
                 reasoning: request.reasoning,
                 onStreamingMessage: msg => {
-                    this.server.notify(socket, NotificationKind.STREAMING_MESSAGE, [msg]);
+                    this.server.notify<NotificationKind>(socket, 'streaming_message', [msg]);
                 }
             });
             return response;
