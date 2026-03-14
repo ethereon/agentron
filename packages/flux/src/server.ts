@@ -1,9 +1,10 @@
 import type * as net from 'node:net';
 
+import { UnixRpcServer } from '@ethereon/ein/unix-rpc-server';
+
 import type { AssistantMessage } from './agent-message.js';
 import type { ToolSet } from './llm-request.js';
 
-import { UnixRpcServer } from './ein/unix-rpc-server.js';
 import { PiBackend } from './pi/pi-backend.js';
 import { isModel, isModelReasoningLevel } from './model.validation.js';
 import { isToolSchema } from './tool-schema.validation.js';

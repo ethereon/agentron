@@ -1,5 +1,5 @@
-import { type Disposable, DisposableObject, DisposableStore } from './ein/disposable.js';
-import { Publisher } from './ein/publisher.js';
+import { type Disposable, DisposableObject, DisposableStore } from '@ethereon/ein/disposable';
+import { Publisher } from '@ethereon/ein/publisher';
 import { inspect } from 'node:util';
 
 export const enum LogLevel {

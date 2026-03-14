@@ -1,0 +1,8 @@
+{
+    "name": "@ethereon/agentron",
+    "private": true,
+    "workspaces": [
+        "packages/ein",
+        "packages/flux"
+    ]
+}

@@ -1,0 +1,29 @@
+{
+    "name": "@ethereon/ein",
+    "version": "1.0.0",
+    "description": "A TypeScript utility library",
+    "homepage": "https://github.com/ethereon/ein#readme",
+    "bugs": {
+        "url": "https://github.com/ethereon/ein/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ethereon/ein.git"
+    },
+    "exports": {
+        "./*": {
+            "import": "./dist/*.js",
+            "require": "./dist/*.js",
+            "types": "./dist/*.d.ts"
+        }
+    },
+    "license": "MIT",
+    "author": "Saumitro Dasgupta",
+    "type": "module",
+    "main": "index.js",
+    "scripts": {},
+    "devDependencies": {
+        "@types/node": "^25.5.0",
+        "typescript": "^5.9.3"
+    }
+}
