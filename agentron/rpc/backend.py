@@ -15,6 +15,7 @@ from agentron.model import Model
 from agentron.rpc.client import JsonRpcClient
 from agentron.rpc.utils import get_safe_socket_path
 from agentron.rpc import api
+from agentron.path import get_flux_root
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +156,7 @@ class FluxProcess:
         logger.debug(f'Starting Flux process with socket path: {self.socket_path}')
         self.process = await asyncio.create_subprocess_exec(
             'node',
-            get_flux_path(),
+            str(get_flux_path()),
             '--ipc',
             self.socket_path,
             stdout=asyncio.subprocess.PIPE,
@@ -209,5 +210,5 @@ class FluxExistingProcess:
         pass
 
 
-def get_flux_path() -> str:
-    return str(Path(__file__).parent.parent.parent / 'packages' / 'flux' / 'dist' / 'main.js')
+def get_flux_path() -> Path:
+    return get_flux_root() / 'main.js'
