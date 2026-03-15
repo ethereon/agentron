@@ -136,8 +136,10 @@ function isToolResult(obj: any): boolean {
     return (
         obj != null &&
         typeof obj.success === 'boolean' &&
-        (obj.content == null || obj.content == null || isTextContent(obj.content)) &&
-        (obj.error == null || obj.error == null || typeof obj.error === 'string')
+        isTextContent(obj.content) &&
+        (obj.internal_error == null ||
+            obj.internal_error == null ||
+            typeof obj.internal_error === 'string')
     );
 }
 

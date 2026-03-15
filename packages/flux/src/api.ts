@@ -4,14 +4,9 @@ import type { AgentMessage } from './agent-message.js';
 import type { ToolSchema } from './tool-schema.js';
 import type { Model, ModelReasoningLevel } from './model.js';
 
-export const enum NotificationKind {
-    STREAMING_MESSAGE = 'streaming_message'
-}
+export type NotificationKind = 'streaming_message';
 
-export const enum RequestKind {
-    SESSION_START = 'session_start',
-    TRANSMIT = 'transmit'
-}
+export type RequestKind = 'session_start' | 'transmit';
 
 export interface SessionStartRequest {
     session_id: string;

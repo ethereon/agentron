@@ -28,7 +28,7 @@ def is_typed_dict_class(obj: Any) -> bool:
 
 def to_ts_literal(value: Any) -> str:
     if isinstance(value, StrEnum):
-        return f'{value.__class__.__name__}.{value.name}'
+        return f"'{value.value}'"
     if isinstance(value, str):
         escaped = value.replace('\\', '\\\\').replace("'", "\\'")
         return f"'{escaped}'"
@@ -104,11 +104,8 @@ def to_ts_type(annotation: Any) -> str:
 
 
 def render_enum(name: str, enum_cls: type[StrEnum]) -> str:
-    lines = [f'export const enum {name} {{']
-    for member in enum_cls:
-        lines.append(f"    {member.name} = '{member.value}',")
-    lines.append('}')
-    return '\n'.join(lines)
+    union = ' | '.join(f"'{member.value}'" for member in enum_cls)
+    return f'export type {name} = {union};'
 
 
 def render_interface(name: str, cls: type, globalns: dict[str, Any]) -> str:

@@ -7,8 +7,7 @@ from agentron.utils.asyn import maybe_await
 from agentron.tool.parser import generate_tool_schema
 
 
-class ToolCallError(RuntimeError):
-    ...
+class ToolCallError(RuntimeError): ...
 
 
 class ToolManager(Protocol):
@@ -42,5 +41,5 @@ class CoreToolManager(ToolManager):
         except ToolCallError as err:
             return ToolResult(
                 success=False,
-                error=str(err),
+                content=as_content(f'Error: {str(err)}'),
             )

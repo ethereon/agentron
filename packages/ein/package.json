@@ -12,9 +12,9 @@
     },
     "exports": {
         "./*": {
+            "types": "./dist/*.d.ts",
             "import": "./dist/*.js",
-            "require": "./dist/*.js",
-            "types": "./dist/*.d.ts"
+            "require": "./dist/*.js"
         }
     },
     "license": "MIT",

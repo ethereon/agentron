@@ -3,6 +3,7 @@
     "private": true,
     "workspaces": [
         "packages/ein",
-        "packages/flux"
+        "packages/flux",
+        "packages/webui"
     ]
 }

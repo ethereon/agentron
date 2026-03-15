@@ -1,43 +1,33 @@
 // Auto-generated file. Do not edit directly.
 
-export const enum MessageType {
-    SYSTEM = 'system',
-    USER = 'user',
-    ASSISTANT = 'assistant',
-    TOOL_RESULT = 'tool_result'
-}
+export type MessageType = 'system' | 'user' | 'assistant' | 'tool_result';
 
 export interface BaseMessage {
     id: string;
     timestamp: number;
 }
 
-export const enum ContentType {
-    TEXT = 'text'
-}
+export type ContentType = 'text';
 
 export interface TextContent {
-    type: ContentType.TEXT;
+    type: 'text';
     text: string;
     text_signature?: string;
 }
 
 export type Content = TextContent;
 
-export const enum AssistantContentType {
-    REASONING = 'reasoning',
-    TOOL_CALL = 'tool_call'
-}
+export type AssistantContentType = 'reasoning' | 'tool_call';
 
 export interface Reasoning {
-    type: AssistantContentType.REASONING;
+    type: 'reasoning';
     text: string;
     signature?: string;
     redacted?: boolean;
 }
 
 export interface ToolCall {
-    type: AssistantContentType.TOOL_CALL;
+    type: 'tool_call';
     id: string;
     name: string;
     arguments: Record<string, unknown>;
@@ -56,13 +46,7 @@ export interface ModelInfo {
     model: string;
 }
 
-export const enum FinishReason {
-    STOP = 'stop',
-    LENGTH = 'length',
-    TOOL_USE = 'tool_use',
-    ERROR = 'error',
-    ABORTED = 'aborted'
-}
+export type FinishReason = 'stop' | 'length' | 'tool_use' | 'error' | 'aborted';
 
 export interface TokenUsageCost {
     input: number;
@@ -84,21 +68,21 @@ export interface TokenUsage {
 export interface UserMessage {
     id: string;
     timestamp: number;
-    mtype: MessageType.USER;
+    mtype: 'user';
     content: Content;
 }
 
 export interface SystemMessage {
     id: string;
     timestamp: number;
-    mtype: MessageType.SYSTEM;
+    mtype: 'system';
     content: Content;
 }
 
 export interface AssistantMessage {
     id: string;
     timestamp: number;
-    mtype: MessageType.ASSISTANT;
+    mtype: 'assistant';
     content: AssistantContent[];
     model: ModelInfo;
     token_usage: TokenUsage;
@@ -108,14 +92,14 @@ export interface AssistantMessage {
 
 export interface ToolResult {
     success: boolean;
-    content?: Content;
-    error?: string;
+    content: Content;
+    internal_error?: string;
 }
 
 export interface ToolResultMessage {
     id: string;
     timestamp: number;
-    mtype: MessageType.TOOL_RESULT;
+    mtype: 'tool_result';
     call_id: string;
     tool_name: string;
     result: ToolResult;
@@ -123,14 +107,13 @@ export interface ToolResultMessage {
 
 export type AgentMessage = UserMessage | SystemMessage | AssistantMessage | ToolResultMessage;
 
-export const enum StreamingMessageType {
-    TEXT_START = 'text_start',
-    TEXT_DELTA = 'text_delta',
-    TEXT_END = 'text_end',
-    REASONING_START = 'reasoning_start',
-    REASONING_DELTA = 'reasoning_delta',
-    REASONING_END = 'reasoning_end'
-}
+export type StreamingMessageType =
+    | 'text_start'
+    | 'text_delta'
+    | 'text_end'
+    | 'reasoning_start'
+    | 'reasoning_delta'
+    | 'reasoning_end';
 
 export interface StreamingMessage {
     session_id: string;

@@ -1,17 +1,17 @@
 import * as pi from '@mariozechner/pi-ai';
 
 import { textContent } from '../agent-message-utils.js';
-import {
+import type {
     MessageType,
     FinishReason,
-    type AgentMessage,
-    type ModelInfo,
-    type TokenUsage,
-    type AssistantMessage,
-    type AssistantContent,
+    AgentMessage,
+    ModelInfo,
+    TokenUsage,
+    AssistantMessage,
+    AssistantContent,
     AssistantContentType,
     ContentType,
-    type TextContent
+    TextContent
 } from '../agent-message.js';
 
 interface PiTranslation {
@@ -39,11 +39,11 @@ export function translateToPi(request: ToPiTranslationRequest): PiTranslation {
 
     function processMessage(msg: AgentMessage): void {
         switch (msg.mtype) {
-            case MessageType.SYSTEM:
+            case 'system':
                 systemPrompt = msg.content.text;
                 return;
 
-            case MessageType.USER:
+            case 'user':
                 messages.push({
                     role: 'user',
                     content: [msg.content],
@@ -51,7 +51,7 @@ export function translateToPi(request: ToPiTranslationRequest): PiTranslation {
                 });
                 return;
 
-            case MessageType.ASSISTANT:
+            case 'assistant':
                 messages.push({
                     role: 'assistant',
                     content: msg.content.map(asPiAssistantContent),
@@ -65,7 +65,7 @@ export function translateToPi(request: ToPiTranslationRequest): PiTranslation {
                 });
                 return;
 
-            case MessageType.TOOL_RESULT:
+            case 'tool_result':
                 messages.push({
                     role: 'toolResult',
                     toolCallId: msg.call_id,
@@ -101,7 +101,7 @@ export function translateToPi(request: ToPiTranslationRequest): PiTranslation {
 export function fromPiAssistantMessage(request: FromPiTranslationRequest): AssistantMessage {
     const msg = request.message;
     return {
-        mtype: MessageType.ASSISTANT,
+        mtype: 'assistant',
         id: request.id,
         content: msg.content.map(fromPiAssistantContent),
         timestamp: msg.timestamp,
@@ -116,10 +116,10 @@ type PiAssistantContent = pi.TextContent | pi.ThinkingContent | pi.ToolCall;
 
 function asPiAssistantContent(content: AssistantContent): PiAssistantContent {
     switch (content.type) {
-        case ContentType.TEXT:
+        case 'text':
             return content;
 
-        case AssistantContentType.TOOL_CALL:
+        case 'tool_call':
             return {
                 type: 'toolCall',
                 id: content.id,
@@ -128,7 +128,7 @@ function asPiAssistantContent(content: AssistantContent): PiAssistantContent {
                 thoughtSignature: content.thought_signature
             };
 
-        case AssistantContentType.REASONING:
+        case 'reasoning':
             return {
                 type: 'thinking',
                 thinking: content.text,
@@ -149,7 +149,7 @@ function fromPiAssistantContent(content: PiAssistantContent): AssistantContent {
 
         case 'toolCall':
             return {
-                type: AssistantContentType.TOOL_CALL,
+                type: 'tool_call',
                 id: content.id,
                 name: content.name,
                 arguments: content.arguments,
@@ -158,7 +158,7 @@ function fromPiAssistantContent(content: PiAssistantContent): AssistantContent {
 
         case 'thinking':
             return {
-                type: AssistantContentType.REASONING,
+                type: 'reasoning',
                 text: content.thinking,
                 signature: content.thinkingSignature,
                 redacted: content.redacted
@@ -175,20 +175,14 @@ function asPiStopReason(reason: string | undefined): pi.StopReason {
         return 'stop';
     }
     switch (reason) {
-        case FinishReason.STOP:
-            return 'stop';
+        case 'stop':
+        case 'length':
+        case 'error':
+        case 'aborted':
+            return reason;
 
-        case FinishReason.LENGTH:
-            return 'length';
-
-        case FinishReason.TOOL_USE:
+        case 'tool_use':
             return 'toolUse';
-
-        case FinishReason.ERROR:
-            return 'error';
-
-        case FinishReason.ABORTED:
-            return 'aborted';
 
         default:
             return 'stop';
@@ -197,23 +191,17 @@ function asPiStopReason(reason: string | undefined): pi.StopReason {
 
 function fromPiStopReason(reason: pi.StopReason | undefined): FinishReason {
     if (reason == null) {
-        return FinishReason.STOP;
+        return 'stop';
     }
     switch (reason) {
         case 'stop':
-            return FinishReason.STOP;
-
         case 'length':
-            return FinishReason.LENGTH;
+        case 'error':
+        case 'aborted':
+            return reason;
 
         case 'toolUse':
-            return FinishReason.TOOL_USE;
-
-        case 'error':
-            return FinishReason.ERROR;
-
-        case 'aborted':
-            return FinishReason.ABORTED;
+            return 'tool_use';
 
         default:
             return reason satisfies never;

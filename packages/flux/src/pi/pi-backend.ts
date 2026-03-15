@@ -5,12 +5,8 @@ import { kDefaultReasoningLevel, type LLMRequest, type ToolSet } from '../llm-re
 import { fromPiAssistantMessage, translateToPi } from './pi-message-translator.js';
 import { jsonSchemaToolToPiTool } from './pi-tool-translator.js';
 import { asPiModel } from './pi-model-translator.js';
-import { type Model, ModelReasoningLevel } from '../model.js';
-import {
-    StreamingMessageType,
-    type AssistantMessage,
-    type StreamingMessage
-} from '../agent-message.js';
+import type { Model, ModelReasoningLevel } from '../model.js';
+import type { StreamingMessageType, AssistantMessage, StreamingMessage } from '../agent-message.js';
 
 export type PiModel = pi.Model<pi.KnownApi>;
 
@@ -78,30 +74,26 @@ function asThinkingLevel(level: ModelReasoningLevel | undefined): pi.ThinkingLev
         // Use the default (usually medium).
         // Note that we don't want to return undefined here as that would effectively
         // disable reasoning for pi (at least for providers like Z.ai).
-        return kDefaultReasoningLevel;
+        level = kDefaultReasoningLevel;
     }
 
     switch (level) {
-        case ModelReasoningLevel.DISABLED:
+        case 'disabled':
             // For pi, a falsey/omitted reasoning level is equivalent to disabled.
             return undefined;
 
-        case ModelReasoningLevel.LOW:
-            return 'low';
+        case 'low':
+        case 'medium':
+        case 'high':
+            return level;
 
-        case ModelReasoningLevel.MEDIUM:
-            return 'medium';
-
-        case ModelReasoningLevel.HIGH:
-            return 'high';
-
-        case ModelReasoningLevel.EXTRA_HIGH:
+        case 'extra_high':
             return 'xhigh';
 
         default:
             level satisfies never;
             log.warn(`Received unrecognized reasoning level: ${level}.`);
-            return kDefaultReasoningLevel;
+            return asThinkingLevel(kDefaultReasoningLevel);
     }
 }
 
@@ -114,26 +106,26 @@ function maybeStreamMessage(
     let type: StreamingMessageType | undefined = undefined;
     let delta: string | undefined = undefined;
     switch (ev.type) {
-        case 'text_start':
-            type = StreamingMessageType.TEXT_START;
-            break;
         case 'text_delta':
-            type = StreamingMessageType.TEXT_DELTA;
             delta = ev.delta;
-            break;
+        case 'text_start':
         case 'text_end':
-            type = StreamingMessageType.TEXT_END;
+            type = ev.type;
             break;
-        case 'thinking_start':
-            type = StreamingMessageType.REASONING_START;
-            break;
+
         case 'thinking_delta':
-            type = StreamingMessageType.REASONING_DELTA;
             delta = ev.delta;
+            type = 'reasoning_delta';
             break;
+
+        case 'thinking_start':
+            type = 'reasoning_start';
+            break;
+
         case 'thinking_end':
-            type = StreamingMessageType.REASONING_END;
+            type = 'reasoning_end';
             break;
+
         default:
             return;
     }
@@ -147,10 +139,6 @@ function maybeStreamMessage(
             message: ev.partial
         })
     });
-}
-
-function getStreamingMessageType(ev: pi.AssistantMessageEvent): StreamingMessageType | undefined {
-    return undefined;
 }
 
 function getPiTools(tools: ToolSet): pi.Tool[] {
