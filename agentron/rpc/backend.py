@@ -80,14 +80,14 @@ class FluxBackend:
         messages: list[api.AgentMessage],
         *,
         session_id: str,
-        reasoning_level: api.ModelReasoningLevel,
+        reasoning: api.ModelReasoningLevel,
     ) -> AssistantMessage:
         return await self.rpc.request(
             method=api.RequestKind.TRANSMIT,
             params=api.TransmitRequest(
                 session_id=session_id,
                 messages=messages,
-                reasoning=reasoning_level,
+                reasoning=reasoning,
             ),
         )
 
@@ -103,7 +103,7 @@ class FluxTransmitter:
         session_id: str,
         tools: list[ToolSchema],
         model: Model,
-        reasoning_level: api.ModelReasoningLevel,
+        reasoning: api.ModelReasoningLevel,
         api_key: str | None = None,
     ):
         self.session_id = session_id
@@ -112,7 +112,7 @@ class FluxTransmitter:
         self.model = model
         self.api_key = api_key
         self.initialization_lock = asyncio.Lock()
-        self.reasoning_level = reasoning_level
+        self.reasoning = reasoning
         self.on_streaming_message: StreamingMessageHandler | None = None
 
     async def __call__(self, messages: list[api.AgentMessage]) -> AssistantMessage:
@@ -123,7 +123,7 @@ class FluxTransmitter:
         return await self.backend.transmit(
             session_id=self.session_id,
             messages=messages,
-            reasoning_level=self.reasoning_level,
+            reasoning=self.reasoning,
         )
 
     async def _initialize(self):

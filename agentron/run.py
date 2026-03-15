@@ -17,7 +17,7 @@ def make_agent(
     system_prompt: str,
     tools: list[ToolFunction],
     model: Model,
-    reasoning_level: ModelReasoningLevel = ModelReasoningLevel.MEDIUM,
+    reasoning: ModelReasoningLevel = ModelReasoningLevel.MEDIUM,
     api_key: str | None = None,
 ):
     session_id = uuid.uuid4().hex
@@ -27,7 +27,7 @@ def make_agent(
         tools=tool_manager.schema,
         model=model,
         api_key=api_key or resolve_api_key(model),
-        reasoning_level=reasoning_level,
+        reasoning=reasoning,
     )
     session = AgentSession(
         id=session_id,

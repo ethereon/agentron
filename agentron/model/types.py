@@ -1,4 +1,4 @@
-from typing import Literal, Sequence, TypedDict, NotRequired
+from typing import Sequence, TypedDict, NotRequired
 from enum import StrEnum
 
 
