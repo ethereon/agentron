@@ -1,0 +1,17 @@
+@use colors
+
+.at-tab-bar
+    display: flex
+    gap: 10px
+    border: 1px solid $colors.border
+    border-radius: 3px
+    padding: 5px
+    max-width: fit-content
+    font-size: 0.85rem
+
+.at-tab
+    opacity: 0.6
+    cursor: pointer
+    user-select: none
+    &.selected
+        opacity: 1
