@@ -1,10 +1,12 @@
-import * as style from '../gen/styles/components.js';
+import * as style from '../../gen/styles/components/collapsible.js';
 
 import { div } from '@ethereon/ein/dom/utils';
-import { makeIcon } from '../icons.js';
+import { makeIcon } from '../../icons.js';
+
+type LazyContentProvider = () => HTMLElement;
 
 interface CollapsibleParams {
-    content: HTMLElement;
+    content: HTMLElement | LazyContentProvider;
     isExpanded: boolean;
 
     title?: string;
@@ -18,7 +20,7 @@ export class Collapsible {
     readonly toggler: HTMLElement;
     readonly header: HTMLElement;
     readonly subview: HTMLElement;
-    readonly content: HTMLElement;
+    readonly content: LazyContentProvider;
 
     private _isExpanded?: boolean;
 
@@ -26,9 +28,11 @@ export class Collapsible {
         this.toggler = div({
             class: style.collapsible_toggler
         });
+
         this.subview = div({
             class: style.collapsible_content
         });
+
         this.header = div({
             class: style.collapsible_header,
             children: [
@@ -40,12 +44,17 @@ export class Collapsible {
                     })
             ]
         });
+
         this.header.onmousedown = () => this.setExpanded(!this._isExpanded);
+
         this.container = div({
             class: style.collapsible,
             children: [this.header, this.subview]
         });
-        this.content = params.content;
+
+        const content = params.content;
+        this.content = typeof content === 'function' ? content : () => content;
+
         this.setExpanded(params.isExpanded);
     }
 
@@ -55,7 +64,7 @@ export class Collapsible {
         }
         this._isExpanded = expanded;
         this.toggler.replaceChildren(makeIcon(expanded ? 'ChevronDown' : 'ChevronRight'));
-        this.subview.replaceChildren(...(expanded ? [this.content] : []));
+        this.subview.replaceChildren(...(expanded ? [this.content()] : []));
     }
 
     static element(params: CollapsibleParams): HTMLElement {
