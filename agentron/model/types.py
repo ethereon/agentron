@@ -1,5 +1,31 @@
-from typing import Sequence, TypedDict, NotRequired
-from enum import StrEnum
+from typing import Sequence, TypedDict, NotRequired, Literal
+
+
+type ModelApi = Literal[
+    'anthropic-messages',
+    'azure-openai-responses',
+    'bedrock-converse-stream',
+    'google-gemini-cli',
+    'google-generative-ai',
+    'google-vertex',
+    'mistral-conversations',
+    'openai-codex-responses',
+    'openai-completions',
+    'openai-responses',
+]
+
+type ModelInputModality = Literal[
+    'text',
+    'image',
+]
+
+type ModelReasoningLevel = Literal[
+    'disabled',
+    'low',
+    'medium',
+    'high',
+    'extra_high',
+]
 
 
 class ModelPricing(TypedDict):
@@ -7,24 +33,6 @@ class ModelPricing(TypedDict):
     output: float
     cache_read: float
     cache_write: float
-
-
-class ModelApi(StrEnum):
-    ANTHROPIC_MESSAGES = 'anthropic-messages'
-    AZURE_OPENAI_RESPONSES = 'azure-openai-responses'
-    BEDROCK_CONVERSE_STREAM = 'bedrock-converse-stream'
-    GOOGLE_GEMINI_CLI = 'google-gemini-cli'
-    GOOGLE_GENERATIVE_AI = 'google-generative-ai'
-    GOOGLE_VERTEX = 'google-vertex'
-    MISTRAL_CONVERSATIONS = 'mistral-conversations'
-    OPENAI_CODEX_RESPONSES = 'openai-codex-responses'
-    OPENAI_COMPLETIONS = 'openai-completions'
-    OPENAI_RESPONSES = 'openai-responses'
-
-
-class ModelInputModality(StrEnum):
-    TEXT = 'text'
-    IMAGE = 'image'
 
 
 class Model(TypedDict):
@@ -39,11 +47,3 @@ class Model(TypedDict):
     context_window: int
     max_tokens: int
     headers: NotRequired[dict[str, str]]
-
-
-class ModelReasoningLevel(StrEnum):
-    DISABLED = 'disabled'
-    LOW = 'low'
-    MEDIUM = 'medium'
-    HIGH = 'high'
-    EXTRA_HIGH = 'extra_high'

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from enum import StrEnum
 from typing import Any, Literal, NotRequired, TypedDict
 
 
-class MessageType(StrEnum):
-    SYSTEM = 'system'
-    USER = 'user'
-    ASSISTANT = 'assistant'
-    TOOL_RESULT = 'tool_result'
+type MessageType = Literal[
+    'system',
+    'user',
+    'assistant',
+    'tool_result',
+]
 
 
 class BaseMessage(TypedDict):
@@ -16,33 +16,32 @@ class BaseMessage(TypedDict):
     timestamp: int
 
 
-class ContentType(StrEnum):
-    TEXT = 'text'
+type ContentType = Literal['text']
 
 
 class TextContent(TypedDict):
-    type: Literal[ContentType.TEXT]
+    type: Literal['text']
     text: str
     text_signature: NotRequired[str]
 
 
 type Content = TextContent
 
-
-class AssistantContentType(StrEnum):
-    REASONING = 'reasoning'
-    TOOL_CALL = 'tool_call'
+type AssistantContentType = Literal[
+    'reasoning',
+    'tool_call',
+]
 
 
 class Reasoning(TypedDict):
-    type: Literal[AssistantContentType.REASONING]
+    type: Literal['reasoning']
     text: str
     signature: NotRequired[str]
     redacted: NotRequired[bool]
 
 
 class ToolCall(TypedDict):
-    type: Literal[AssistantContentType.TOOL_CALL]
+    type: Literal['tool_call']
     id: str
     name: str
     arguments: dict[str, Any]
@@ -62,12 +61,13 @@ class ModelInfo(TypedDict):
     model: str
 
 
-class FinishReason(StrEnum):
-    STOP = 'stop'
-    LENGTH = 'length'
-    TOOL_USE = 'tool_use'
-    ERROR = 'error'
-    ABORTED = 'aborted'
+type FinishReason = Literal[
+    'stop',
+    'length',
+    'tool_use',
+    'error',
+    'aborted',
+]
 
 
 class TokenUsageCost(TypedDict):
@@ -88,17 +88,17 @@ class TokenUsage(TypedDict):
 
 
 class UserMessage(BaseMessage):
-    mtype: Literal[MessageType.USER]
+    mtype: Literal['user']
     content: Content
 
 
 class SystemMessage(BaseMessage):
-    mtype: Literal[MessageType.SYSTEM]
+    mtype: Literal['system']
     content: Content
 
 
 class AssistantMessage(BaseMessage):
-    mtype: Literal[MessageType.ASSISTANT]
+    mtype: Literal['assistant']
     content: list[AssistantContent]
     model: ModelInfo
     token_usage: TokenUsage
@@ -115,7 +115,7 @@ class ToolResult(TypedDict):
 
 
 class ToolResultMessage(BaseMessage):
-    mtype: Literal[MessageType.TOOL_RESULT]
+    mtype: Literal['tool_result']
     call_id: str
     tool_name: str
     result: ToolResult
@@ -123,15 +123,14 @@ class ToolResultMessage(BaseMessage):
 
 type AgentMessage = UserMessage | SystemMessage | AssistantMessage | ToolResultMessage
 
-
-class StreamingMessageType(StrEnum):
-    TEXT_START = 'text_start'
-    TEXT_DELTA = 'text_delta'
-    TEXT_END = 'text_end'
-
-    REASONING_START = 'reasoning_start'
-    REASONING_DELTA = 'reasoning_delta'
-    REASONING_END = 'reasoning_end'
+type StreamingMessageType = Literal[
+    'text_start',
+    'text_delta',
+    'text_end',
+    'reasoning_start',
+    'reasoning_delta',
+    'reasoning_end',
+]
 
 
 class StreamingMessage(TypedDict):

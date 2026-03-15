@@ -5,11 +5,8 @@ import time
 
 from agentron.typing import ContentLike, PILImage
 from agentron.messages import (
-    AssistantContentType,
     AssistantMessage,
     Content,
-    ContentType,
-    MessageType,
     SystemMessage,
     TextContent,
     ToolCall,
@@ -24,7 +21,7 @@ def as_content(content: ContentLike) -> Content:
         return content
     elif isinstance(content, str):
         return TextContent(
-            type=ContentType.TEXT,
+            type='text',
             text=content,
         )
     elif PILImage is not Any and isinstance(content, PILImage):
@@ -43,7 +40,7 @@ def new_message_id() -> str:
 
 def make_user_message(content: ContentLike) -> UserMessage:
     return UserMessage(
-        mtype=MessageType.USER,
+        mtype='user',
         id=new_message_id(),
         timestamp=current_timestamp(),
         content=as_content(content),
@@ -52,7 +49,7 @@ def make_user_message(content: ContentLike) -> UserMessage:
 
 def make_system_message(text: str) -> SystemMessage:
     return SystemMessage(
-        mtype=MessageType.SYSTEM,
+        mtype='system',
         id=new_message_id(),
         timestamp=current_timestamp(),
         content=as_content(text),
@@ -63,7 +60,7 @@ def extract_tool_calls(response: AssistantMessage) -> list[ToolCall]:
     tool_calls: list[ToolCall] = []
 
     for content in response['content']:
-        if content['type'] == AssistantContentType.TOOL_CALL:
+        if content['type'] == 'tool_call':
             tool_calls.append(content)
 
     return tool_calls
@@ -73,7 +70,7 @@ def as_tool_result_message(tool_result: ToolResult, tool_call: ToolCall) -> Tool
     return ToolResultMessage(
         id=new_message_id(),
         timestamp=current_timestamp(),
-        mtype=MessageType.TOOL_RESULT,
+        mtype='tool_result',
         call_id=tool_call['id'],
         tool_name=tool_call['name'],
         result=tool_result,

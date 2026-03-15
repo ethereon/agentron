@@ -1,12 +1,5 @@
 // Auto-generated file. Do not edit directly.
 
-export interface ModelPricing {
-    input: number;
-    output: number;
-    cache_read: number;
-    cache_write: number;
-}
-
 export type ModelApi =
     | 'anthropic-messages'
     | 'azure-openai-responses'
@@ -21,6 +14,15 @@ export type ModelApi =
 
 export type ModelInputModality = 'text' | 'image';
 
+export type ModelReasoningLevel = 'disabled' | 'low' | 'medium' | 'high' | 'extra_high';
+
+export interface ModelPricing {
+    input: number;
+    output: number;
+    cache_read: number;
+    cache_write: number;
+}
+
 export interface Model {
     id: string;
     name: string;
@@ -34,5 +36,3 @@ export interface Model {
     max_tokens: number;
     headers?: Record<string, string>;
 }
-
-export type ModelReasoningLevel = 'disabled' | 'low' | 'medium' | 'high' | 'extra_high';

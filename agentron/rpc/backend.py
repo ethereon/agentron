@@ -112,7 +112,7 @@ class FluxTransmitter:
         self.model = model
         self.api_key = api_key
         self.initialization_lock = asyncio.Lock()
-        self.reasoning = reasoning
+        self.reasoning: api.ModelReasoningLevel = reasoning
         self.on_streaming_message: StreamingMessageHandler | None = None
 
     async def __call__(self, messages: list[api.AgentMessage]) -> AssistantMessage:
