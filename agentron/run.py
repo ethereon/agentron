@@ -8,7 +8,6 @@ from agentron.session import AgentSession
 from agentron.tool.manager import CoreToolManager
 from agentron.model.auth import resolve_api_key
 from agentron.utils.messages import make_system_message
-from agentron.console import ConsoleRenderer
 
 
 logger = logging.getLogger(__name__)
@@ -37,5 +36,4 @@ def make_agent(
         transmitter=transmitter,
     )
     transmitter.on_streaming_message = session.on_streaming_message.publish
-    renderer = ConsoleRenderer(session=session)
     return session
