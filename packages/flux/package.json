@@ -1,11 +1,16 @@
 {
-    "name": "@ethereon/agentron-flux",
+    "name": "@ethereon/flux",
     "version": "0.1.0",
     "description": "LLM communication RPC server",
     "license": "MIT",
     "author": "Saumitro Dasgupta",
     "type": "module",
     "main": "main.js",
+    "exports": {
+        "./*": {
+            "types": "./dist/*.d.ts"
+        }
+    },
     "scripts": {
         "test": "vitest"
     },
