@@ -30,7 +30,6 @@ class WebServer:
     SSE event types:
         new_message         AgentMessage (user/system/assistant/tool_result)
         streaming_message   StreamingMessage (incremental assistant text/reasoning)
-
     """
 
     def __init__(self, host: str = 'localhost', port: int = 8765):
@@ -132,15 +131,9 @@ class WebServer:
         with self._lock:
             return list(self._clients)
 
-    def _get_session_messages(self, session_id: str) -> list[Any] | None:
-        """
-        Return all existing messages for *session_id*.
-
-        Returns None when the session is unknown.
-        """
+    def _get_session(self, session_id: str) -> AgentSession | None:
         with self._lock:
-            session = self._sessions.get(session_id)
-            return session.messages if session else None
+            return self._sessions.get(session_id)
 
     def _resolve_static_path(self, request_path: str) -> Path | None:
         relative_path = Path(unquote(request_path.lstrip('/')))
@@ -202,14 +195,28 @@ def _make_handler(server: WebServer):
             )
             self.wfile.write(body)
 
-        def _handle_sse(self, parsed) -> None:
+        def _require_session_id(self, parsed) -> str | None:
             params = parse_qs(parsed.query)
             ids = params.get('session_id')
             if not ids:
                 self.send_error(400, 'Missing session_id parameter')
-                return
+                return None
+            return ids[0]
 
-            session_id = ids[0]
+        def _require_session(self, parsed) -> AgentSession | None:
+            session_id = self._require_session_id(parsed)
+            if session_id is None:
+                return None
+            session = server._get_session(session_id)
+            if session is None:
+                self.send_error(404, f'Unknown session: {session_id}')
+                return None
+            return session
+
+        def _handle_sse(self, parsed) -> None:
+            session_id = self._require_session_id(parsed)
+            if session_id is None:
+                return
             q: queue.Queue = queue.Queue()
 
             if not server._add_client(session_id, q):
@@ -247,19 +254,14 @@ def _make_handler(server: WebServer):
                 server._remove_client(session_id, q)
 
         def _handle_messages(self, parsed) -> None:
-            params = parse_qs(parsed.query)
-            ids = params.get('session_id')
-            if not ids:
-                self.send_error(400, 'Missing session_id parameter')
+            session_id = self._require_session_id(parsed)
+            if session_id is None:
+                return
+            session = server._get_session(session_id)
+            if session is None:
                 return
 
-            session_id = ids[0]
-            messages = server._get_session_messages(session_id)
-            if messages is None:
-                self.send_error(404, f'Unknown session: {session_id}')
-                return
-
-            body = json.dumps(messages).encode()
+            body = json.dumps(session.messages).encode()
             self._send_response_headers(
                 200,
                 {
