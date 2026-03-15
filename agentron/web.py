@@ -169,7 +169,6 @@ def _make_handler(server: WebServer):
             self.send_response(status_code)
             for header, value in headers.items():
                 self.send_header(header, value)
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
 
         def do_GET(self) -> None:
