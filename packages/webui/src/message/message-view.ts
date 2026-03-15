@@ -1,7 +1,7 @@
 import * as style from '../gen/styles/message.js';
 
-import {
-    type AgentMessage,
+import type {
+    AgentMessage,
     AssistantContent,
     AssistantMessage,
     StreamingMessage,
