@@ -4,6 +4,8 @@ import json
 import mimetypes
 import queue
 import threading
+import webbrowser
+
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -75,7 +77,7 @@ class WebServer:
         for q in clients:
             q.put(_SENTINEL)
 
-    def start(self) -> None:
+    def start(self, *, open_browser: bool = False) -> None:
         """Start the HTTP server on a daemon background thread."""
         self._server = ThreadingHTTPServer((self.host, self.port), _make_handler(self))
         self._thread = threading.Thread(
@@ -84,7 +86,12 @@ class WebServer:
             name='agentron-web-server',
         )
         self._thread.start()
-        print(f'Web UI available at http://{self.host}:{self.port}')
+
+        url = f'http://{self.host}:{self.port}'
+        if open_browser:
+            webbrowser.open(url)
+
+        print(f'Web UI available at {url}')
 
     def join(self) -> None:
         """Block until the server thread exits."""
