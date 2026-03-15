@@ -1,0 +1,21 @@
+@use session
+@use colors
+
+.at-message-text
+    white-space: pre-wrap
+
+.at-message-title
+    font-size: .85rem
+    opacity: 0.7
+
+.at-assistant-message-container
+    display: flex
+    flex-direction: column
+    gap: $session.session_item_gap
+
+.at-reasoning
+    opacity: 0.7
+
+.at-tool-call-name
+    font-size: .85rem
+    color: $colors.tool_call_name
