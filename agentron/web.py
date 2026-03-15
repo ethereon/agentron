@@ -169,6 +169,16 @@ def _make_handler(server: WebServer):
             except (ConnectionResetError, BrokenPipeError):
                 pass
 
+        def log_message(self, format: str, *args: Any) -> None:
+            pass  # Suppress default per-request logging
+
+        def _send_response_headers(self, status_code: int, headers: dict[str, str]) -> None:
+            self.send_response(status_code)
+            for header, value in headers.items():
+                self.send_header(header, value)
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+
         def do_GET(self) -> None:
             parsed = urlparse(self.path)
             match parsed.path:
@@ -183,11 +193,13 @@ def _make_handler(server: WebServer):
 
         def _handle_sessions(self) -> None:
             body = json.dumps(server._session_ids()).encode()
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Content-Length', str(len(body)))
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
+            self._send_response_headers(
+                200,
+                {
+                    'Content-Type': 'application/json',
+                    'Content-Length': str(len(body)),
+                },
+            )
             self.wfile.write(body)
 
         def _handle_sse(self, parsed) -> None:
@@ -204,12 +216,14 @@ def _make_handler(server: WebServer):
                 self.send_error(404, f'Unknown session: {session_id}')
                 return
 
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/event-stream')
-            self.send_header('Cache-Control', 'no-cache')
-            self.send_header('Connection', 'keep-alive')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
+            self._send_response_headers(
+                200,
+                {
+                    'Content-Type': 'text/event-stream',
+                    'Cache-Control': 'no-cache',
+                    'Connection': 'keep-alive',
+                },
+            )
 
             try:
                 while True:
@@ -246,11 +260,13 @@ def _make_handler(server: WebServer):
                 return
 
             body = json.dumps(messages).encode()
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Content-Length', str(len(body)))
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
+            self._send_response_headers(
+                200,
+                {
+                    'Content-Type': 'application/json',
+                    'Content-Length': str(len(body)),
+                },
+            )
             self.wfile.write(body)
 
         def _handle_static(self, request_path: str) -> None:
@@ -262,16 +278,13 @@ def _make_handler(server: WebServer):
             body = file_path.read_bytes()
             content_type, content_encoding = mimetypes.guess_type(str(file_path))
 
-            self.send_response(200)
-            self.send_header('Content-Type', content_type or 'application/octet-stream')
+            headers = {
+                'Content-Type': content_type or 'application/octet-stream',
+                'Content-Length': str(len(body)),
+            }
             if content_encoding:
-                self.send_header('Content-Encoding', content_encoding)
-            self.send_header('Content-Length', str(len(body)))
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
+                headers['Content-Encoding'] = content_encoding
+            self._send_response_headers(200, headers)
             self.wfile.write(body)
-
-        def log_message(self, format: str, *args: Any) -> None:
-            pass  # Suppress default per-request logging
 
     return _Handler
