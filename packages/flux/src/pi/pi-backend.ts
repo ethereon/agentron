@@ -115,8 +115,13 @@ function maybeStreamMessage(
 
         case 'thinking_delta':
             delta = ev.delta;
+            type = 'reasoning_delta';
+            break;
+
         case 'thinking_start':
             type = 'reasoning_start';
+            break;
+
         case 'thinking_end':
             type = 'reasoning_end';
             break;
