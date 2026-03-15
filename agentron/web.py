@@ -253,10 +253,7 @@ def _make_handler(server: WebServer):
                 server._remove_client(session_id, q)
 
         def _handle_messages(self, parsed) -> None:
-            session_id = self._require_session_id(parsed)
-            if session_id is None:
-                return
-            session = server._get_session(session_id)
+            session = self._require_session(parsed)
             if session is None:
                 return
 
