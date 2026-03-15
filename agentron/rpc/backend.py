@@ -12,7 +12,7 @@ from pathlib import Path
 from agentron.messages import AssistantMessage, StreamingMessage
 from agentron.typing import ToolSchema
 from agentron.model import Model
-from agentron.rpc.client import JsonRpcClient
+from agentron.rpc.client import JsonRpcClient, JsonRpcError
 from agentron.rpc.utils import get_safe_socket_path
 from agentron.rpc import api
 from agentron.path import get_flux_root
@@ -20,6 +20,9 @@ from agentron.path import get_flux_root
 logger = logging.getLogger(__name__)
 
 type StreamingMessageHandler = Callable[[StreamingMessage], None]
+
+
+class BackendError(RuntimeError): ...
 
 
 class FluxBackend:
@@ -82,14 +85,17 @@ class FluxBackend:
         session_id: str,
         reasoning: api.ModelReasoningLevel,
     ) -> AssistantMessage:
-        return await self.rpc.request(
-            method=api.RequestKind.TRANSMIT,
-            params=api.TransmitRequest(
-                session_id=session_id,
-                messages=messages,
-                reasoning=reasoning,
-            ),
-        )
+        try:
+            return await self.rpc.request(
+                method=api.RequestKind.TRANSMIT,
+                params=api.TransmitRequest(
+                    session_id=session_id,
+                    messages=messages,
+                    reasoning=reasoning,
+                ),
+            )
+        except JsonRpcError as err:
+            raise BackendError(err.message) from err
 
     def _dispatch_streaming_message(self, message: StreamingMessage) -> None:
         handler = self.streaming_message_handlers.get(message['session_id'])
