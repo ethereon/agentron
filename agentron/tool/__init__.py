@@ -1,1 +1,1 @@
-from .manager import ToolCallError
+from .manager import ToolError
