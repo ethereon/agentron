@@ -13,7 +13,11 @@ import {
 } from '@ethereon/flux/agent-message';
 
 import { div, span } from '@ethereon/ein/dom/utils';
-import { Collapsible } from '../components/collapsible.js';
+import { Collapsible } from '../components/collapsible/collapsible.js';
+import { renderJsonTree } from '../components/json-tree/json-tree.js';
+import { TabBar } from '../components/tab-bar/tab-bar.js';
+import { TabView } from '../components/tab-view/tab-view.js';
+import { makeIcon } from '../icons.js';
 
 export type AgentMessageView = SystemMessageView | UserMessageView | AssistantMessageView;
 
@@ -229,19 +233,31 @@ class AssistantResponseView extends MutableContentView {
 class ToolCallView {
     readonly container: HTMLElement;
 
-    private readonly resultView: HTMLElement;
+    private detailsView?: ToolDetailsView;
     private result?: ToolResult;
+    private statusIcon: HTMLElement;
 
     constructor(readonly toolCall: ToolCall) {
-        this.resultView = div({});
+        this.statusIcon = div({
+            class: style.tool_call_status_icon
+        });
+
         this.container = Collapsible.element({
             headerContent: div({
+                class: style.tool_call_header,
                 children: [
                     span({ text: 'Tool: ', class: style.message_title }),
-                    span({ text: toolCall.name, class: style.tool_call_name })
+                    span({ text: toolCall.name, class: style.tool_call_name }),
+                    this.statusIcon
                 ]
             }),
-            content: this.resultView,
+            content: () => {
+                // Lazily instantiate the details view.
+                if (this.detailsView == null) {
+                    this.detailsView = new ToolDetailsView(this.toolCall, this.result);
+                }
+                return this.detailsView.container;
+            },
             isExpanded: false
         });
     }
@@ -251,5 +267,75 @@ class ToolCallView {
             throw new Error(`Tool result for call ID ${this.toolCall.id} has already been set.`);
         }
         this.result = toolResult;
+        this.detailsView?.renderResults(toolResult);
+        this.statusIcon.replaceChildren(makeIcon(toolResult.success ? 'Check' : 'Cross'));
+        this.statusIcon.classList.toggle(style.failed, !toolResult.success);
+    }
+}
+
+class ToolDetailsView {
+    readonly container: HTMLElement;
+
+    private readonly tabBar: TabBar;
+    private readonly tabView: TabView;
+
+    private argsView?: HTMLElement;
+    private resultView?: HTMLElement;
+
+    constructor(
+        readonly toolCall: ToolCall,
+        result?: ToolResult
+    ) {
+        const selectedIndex = result ? 1 : 0;
+        if (result != null) {
+            this.renderResults(result);
+        }
+
+        this.tabBar = new TabBar({
+            tabs: ['Arguments', 'Results'],
+            selectedIndex
+        });
+
+        this.tabView = new TabView({
+            tabs: [() => this.getArgsView(), () => this.getResultView()],
+            selectedIndex,
+            tabBar: this.tabBar
+        });
+
+        this.container = div({
+            class: style.tool_call_details,
+            children: [this.tabBar.container, this.tabView.container]
+        });
+    }
+
+    renderResults(result: ToolResult) {
+        if (this.resultView != null) {
+            return;
+        }
+        let resultText = result.content?.text;
+        if (resultText == null) {
+            resultText = 'No output produced.';
+        }
+        if (result.internal_error) {
+            resultText += '\n\nInternal Error:\n' + result.internal_error;
+        }
+        this.resultView = div({ text: resultText });
+        this.tabView?.selectTabAtIndex(1);
+    }
+
+    getArgsView(): HTMLElement {
+        if (!this.argsView) {
+            this.argsView = renderJsonTree(this.toolCall.arguments);
+        }
+        return this.argsView;
+    }
+
+    getResultView(): HTMLElement {
+        if (this.resultView == null) {
+            return div({
+                text: 'Tool result not yet available.'
+            });
+        }
+        return this.resultView;
     }
 }

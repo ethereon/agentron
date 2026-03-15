@@ -19,3 +19,21 @@
 .at-tool-call-name
     font-size: .85rem
     color: $colors.tool_call_name
+
+.at-tool-call-header
+    display: flex
+    align-items: center
+    gap: 5px
+
+.at-tool-call-details
+    border: 1px solid $colors.border
+    border-radius: 5px
+    padding: 10px
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+.at-tool-call-status-icon
+    color: #22c55e
+    &.failed
+        color: #ef4444
