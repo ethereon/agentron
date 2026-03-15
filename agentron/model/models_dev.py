@@ -146,13 +146,13 @@ def _coerce_float(value) -> float:
 
 
 _API_MAP: dict[str | None, ModelApi] = {
-    None: ModelApi.OPENAI_COMPLETIONS,
-    '@ai-sdk/anthropic': ModelApi.ANTHROPIC_MESSAGES,
-    '@ai-sdk/google': ModelApi.GOOGLE_GENERATIVE_AI,
-    '@ai-sdk/openai-compatible': ModelApi.OPENAI_COMPLETIONS,
-    '@ai-sdk/openai': ModelApi.OPENAI_RESPONSES,
-    '@ai-sdk/amazon-bedrock': ModelApi.BEDROCK_CONVERSE_STREAM,
-    '@ai-sdk/mistral': ModelApi.MISTRAL_CONVERSATIONS,
+    None: 'openai-completions',
+    '@ai-sdk/anthropic': 'anthropic-messages',
+    '@ai-sdk/google': 'google-generative-ai',
+    '@ai-sdk/openai-compatible': 'openai-completions',
+    '@ai-sdk/openai': 'openai-responses',
+    '@ai-sdk/amazon-bedrock': 'bedrock-converse-stream',
+    '@ai-sdk/mistral': 'mistral-conversations',
 }
 
 _URL_MAP = {

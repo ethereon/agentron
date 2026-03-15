@@ -8,12 +8,8 @@ from agentron.utils.publisher import SubscriptionStore
 from agentron.messages import (
     AgentMessage,
     AssistantContent,
-    AssistantContentType,
     AssistantMessage,
-    ContentType,
-    MessageType,
     StreamingMessage,
-    StreamingMessageType,
     SystemMessage,
     ToolCall,
     ToolResultMessage,
@@ -36,14 +32,7 @@ class ConsoleRenderer:
     Renders session activity to a terminal stream.
     """
 
-    def __init__(
-        self,
-        session: AgentSession,
-        stream=sys.stdout,
-        *,
-        use_color: bool | None = None,
-        display_system_prompt=False
-    ):
+    def __init__(self, session: AgentSession, stream=sys.stdout, *, use_color: bool | None = None, display_system_prompt=False):
         self.session = session
         self.stream = stream
         self.use_color = self._detect_color_support() if use_color is None else use_color
@@ -76,23 +65,23 @@ class ConsoleRenderer:
     def _render_existing_messages(self) -> None:
         for message in self.session.messages:
             match message['mtype']:
-                case MessageType.USER:
+                case 'user':
                     self._print_user_message(message)
-                case MessageType.SYSTEM:
+                case 'system':
                     self._print_system_message(message)
 
     def _on_new_message(self, message: AgentMessage) -> None:
         match message['mtype']:
-            case MessageType.USER:
+            case 'user':
                 self._print_user_message(message)
 
-            case MessageType.SYSTEM:
+            case 'system':
                 self._print_system_message(message)
 
-            case MessageType.ASSISTANT:
+            case 'assistant':
                 if message['id'] not in self._streamed_assistant_ids:
                     self._render_assistant_message(message)
-            case MessageType.TOOL_RESULT:
+            case 'tool_result':
                 self._render_tool_result_message(message)
 
     def _print_user_message(self, message: UserMessage) -> None:
@@ -112,17 +101,20 @@ class ConsoleRenderer:
         delta = message.get('delta', '')
 
         match stream_type:
-            case StreamingMessageType.TEXT_START | StreamingMessageType.TEXT_DELTA:
+            case 'text_start' | 'text_delta':
                 self._activate_stream_segment(segment)
                 self._print_inline(delta)
-            case StreamingMessageType.REASONING_START | StreamingMessageType.REASONING_DELTA:
+
+            case 'reasoning_start' | 'reasoning_delta':
                 self._activate_stream_segment(segment)
                 self._print_inline(self._dim(delta))
-            case StreamingMessageType.TEXT_END:
+
+            case 'text_end':
                 self._activate_stream_segment(segment)
                 self._print_inline(delta)
                 self._finish_stream_segment()
-            case StreamingMessageType.REASONING_END:
+
+            case 'reasoning_end':
                 self._activate_stream_segment(segment)
                 self._print_inline(self._dim(delta))
                 self._finish_stream_segment()
@@ -136,11 +128,13 @@ class ConsoleRenderer:
 
     def _render_assistant_content(self, content: AssistantContent) -> None:
         match content['type']:
-            case ContentType.TEXT:
+            case 'text':
                 self._print(content['text'])
-            case AssistantContentType.REASONING:
+
+            case 'reasoning':
                 self._print(self._dim(content['text']))
-            case AssistantContentType.TOOL_CALL:
+
+            case 'tool_call':
                 self._render_tool_call(content)
 
     def _render_tool_call(self, tool_call: ToolCall) -> None:
