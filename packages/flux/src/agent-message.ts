@@ -92,8 +92,8 @@ export interface AssistantMessage {
 
 export interface ToolResult {
     success: boolean;
-    content?: Content;
-    error?: string;
+    content: Content;
+    internal_error?: string;
 }
 
 export interface ToolResultMessage {

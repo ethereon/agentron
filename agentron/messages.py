@@ -108,8 +108,10 @@ class AssistantMessage(BaseMessage):
 
 class ToolResult(TypedDict):
     success: bool
-    content: NotRequired[Content]
-    error: NotRequired[str]
+    content: Content
+    # The internal error tracks unexpected errors.
+    # This is not propagated to the LLM and is primarily intended for introspection.
+    internal_error: NotRequired[str]
 
 
 class ToolResultMessage(BaseMessage):
