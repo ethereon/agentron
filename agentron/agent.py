@@ -19,15 +19,15 @@ from agentron.messages import (
 type Transmitter = Callable[[list[AgentMessage]], Awaitable[AssistantMessage]]
 
 
-class AgentSession:
+class Agent:
     def __init__(
         self,
-        id: str,
+        session_id: str,
         tool_manager: ToolManager,
         transmitter: Transmitter,
         messages: Iterable[AgentMessage] | None = None,
     ):
-        self.id = id
+        self.session_id = session_id
         self.messages: list[AgentMessage] = list(messages) if messages else []
         self.tool_manager = tool_manager
         self.transmitter = transmitter

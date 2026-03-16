@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, unquote, urlparse
 
-from agentron.session import AgentSession
+from agentron.agent import Agent
 from agentron.utils.publisher import SubscriptionStore
 from agentron.path import get_webui_root
 
@@ -41,32 +41,32 @@ class WebServer:
         self._lock = threading.Lock()
         # Maps session_id -> list of per-client queues
         self._clients: dict[str, list[queue.Queue]] = {}
-        # Maps session_id -> AgentSession (for history endpoints)
-        self._sessions: dict[str, AgentSession] = {}
+        # Maps session_id -> Agent (for history endpoints)
+        self._sessions: dict[str, Agent] = {}
         # Maps session_id -> SubscriptionStore (holds Publisher unsubscribers)
         self._subscriptions: dict[str, SubscriptionStore] = {}
         self._server: ThreadingHTTPServer | None = None
         self._thread: threading.Thread | None = None
 
-    def register_session(self, session: AgentSession) -> None:
-        """Subscribe to all events from *session* and expose it to SSE clients."""
-        session_id = session.id
+    def register_agent(self, agent: Agent) -> None:
+        """Subscribe to all events from *agent* and expose it to SSE clients."""
+        session_id = agent.session_id
         with self._lock:
             if session_id in self._subscriptions:
                 return
             # Subscriptions are established while holding the lock so that no
             # broadcast can race against the client-bucket initialization below.
             store = SubscriptionStore(
-                session.on_new_message.subscribe(lambda msg: self._broadcast(session_id, 'new_message', msg)),
-                session.on_streaming_message.subscribe(lambda msg: self._broadcast(session_id, 'streaming_message', msg)),
+                agent.on_new_message.subscribe(lambda msg: self._broadcast(session_id, 'new_message', msg)),
+                agent.on_streaming_message.subscribe(lambda msg: self._broadcast(session_id, 'streaming_message', msg)),
             )
-            self._sessions[session_id] = session
+            self._sessions[session_id] = agent
             self._subscriptions[session_id] = store
             self._clients[session_id] = []
 
-    def unregister_session(self, session: AgentSession) -> None:
-        """Unsubscribe from *session* and terminate any active SSE connections for it."""
-        session_id = session.id
+    def unregister_agent(self, agent: Agent) -> None:
+        """Unsubscribe from *agent* and terminate any active SSE connections for it."""
+        session_id = agent.session_id
         with self._lock:
             store = self._subscriptions.pop(session_id, None)
             self._sessions.pop(session_id, None)
@@ -138,7 +138,7 @@ class WebServer:
         with self._lock:
             return list(self._clients)
 
-    def _get_session(self, session_id: str) -> AgentSession | None:
+    def _get_agent(self, session_id: str) -> Agent | None:
         with self._lock:
             return self._sessions.get(session_id)
 
@@ -209,15 +209,15 @@ def _make_handler(server: WebServer):
                 return None
             return ids[0]
 
-        def _require_session(self, parsed) -> AgentSession | None:
+        def _require_agent(self, parsed) -> Agent | None:
             session_id = self._require_session_id(parsed)
             if session_id is None:
                 return None
-            session = server._get_session(session_id)
-            if session is None:
+            agent = server._get_agent(session_id)
+            if agent is None:
                 self.send_error(404, f'Unknown session: {session_id}')
                 return None
-            return session
+            return agent
 
         def _handle_sse(self, parsed) -> None:
             session_id = self._require_session_id(parsed)
@@ -260,11 +260,11 @@ def _make_handler(server: WebServer):
                 server._remove_client(session_id, q)
 
         def _handle_messages(self, parsed) -> None:
-            session = self._require_session(parsed)
-            if session is None:
+            agent = self._require_agent(parsed)
+            if agent is None:
                 return
 
-            body = json.dumps(session.messages).encode()
+            body = json.dumps(agent.messages).encode()
             self._send_response_headers(
                 200,
                 {
