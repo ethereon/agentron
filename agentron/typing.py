@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Callable, Any, Awaitable, TypedDict, Protocol
-from agentron.messages import Content, AgentMessage, AssistantMessage
+from agentron.messages import Content, AgentMessage, AssistantMessage, StreamingMessage
+from agentron.model.types import ModelReasoningLevel
 
 if TYPE_CHECKING:
     from PIL import Image
@@ -12,6 +13,8 @@ type ContentLike = str | PILImage | Content
 
 type ToolFunction = Callable[..., ContentLike | Awaitable[ContentLike]]
 
+type StreamingMessageHandler = Callable[[StreamingMessage], None]
+
 
 class ToolSchema(TypedDict):
     name: str
@@ -20,4 +23,11 @@ class ToolSchema(TypedDict):
 
 
 class LLMBackend(Protocol):
-    async def __call__(self, messages: list[AgentMessage], tools: list[ToolSchema]) -> AssistantMessage: ...
+    async def __call__(
+        self,
+        *,
+        session_id: str,
+        messages: list[AgentMessage],
+        reasoning: ModelReasoningLevel,
+        on_streaming_message: StreamingMessageHandler,
+    ) -> AssistantMessage: ...

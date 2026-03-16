@@ -66,6 +66,12 @@ def extract_tool_calls(response: AssistantMessage) -> list[ToolCall]:
     return tool_calls
 
 
+def extract_assistant_text(response: AssistantMessage) -> str | None:
+    for content in response['content']:
+        if content['type'] == 'text':
+            return content['text']
+
+
 def as_tool_result_message(tool_result: ToolResult, tool_call: ToolCall) -> ToolResultMessage:
     return ToolResultMessage(
         id=new_message_id(),

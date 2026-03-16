@@ -1,11 +1,13 @@
 import asyncio
+import uuid
 
-from typing import Awaitable, Callable, Iterable
+from typing import Iterable
 
-
+from agentron.model.types import ModelReasoningLevel
+from agentron.typing import LLMBackend
 from agentron.tool.manager import ToolManager
 from agentron.utils.publisher import Publisher
-from agentron.utils.messages import as_tool_result_message, extract_tool_calls, make_user_message
+from agentron.utils.messages import as_tool_result_message, extract_assistant_text, extract_tool_calls, make_user_message
 from agentron.messages import (
     Content,
     AgentMessage,
@@ -16,35 +18,45 @@ from agentron.messages import (
 )
 
 
-type Transmitter = Callable[[list[AgentMessage]], Awaitable[AssistantMessage]]
-
-
 class Agent:
     def __init__(
         self,
-        session_id: str,
-        tool_manager: ToolManager,
-        transmitter: Transmitter,
+        session_id: str | None = None,
         messages: Iterable[AgentMessage] | None = None,
     ):
-        self.session_id = session_id
+        self.session_id = session_id or uuid.uuid4().hex
         self.messages: list[AgentMessage] = list(messages) if messages else []
-        self.tool_manager = tool_manager
-        self.transmitter = transmitter
+        self.tool_manager: ToolManager | None = None
+        self.backend: LLMBackend | None = None
 
         self.on_transmit = Publisher[None]()
         self.on_new_message = Publisher[AgentMessage]()
         self.on_streaming_message = Publisher[StreamingMessage]()
         self.on_tool_call = Publisher[ToolCall]()
 
-    async def ask(self, prompt: str | Content) -> AssistantMessage:
+    async def ask(
+        self,
+        prompt: str | Content,
+        reasoning: ModelReasoningLevel = 'medium',
+    ) -> str | None:
         self._push_message(make_user_message(prompt))
-        return await self.resume()
+        response = await self._resume(reasoning=reasoning)
+        return extract_assistant_text(response)
 
-    async def resume(self) -> AssistantMessage:
+    def set_backend(self, backend: LLMBackend) -> None:
+        self.backend = backend
+
+    def set_tool_manager(self, tool_manager: ToolManager) -> None:
+        self.tool_manager = tool_manager
+
+    async def _resume(
+        self,
+        *,
+        reasoning: ModelReasoningLevel,
+    ) -> AssistantMessage:
         while True:
             # Get the LLM's response
-            response = await self.transmit()
+            response = await self._transmit(reasoning=reasoning)
             self._push_message(response)
 
             # Check if the LLM called any tools
@@ -54,29 +66,39 @@ class Agent:
                 return response
 
             # Execute tool calls
-            tool_results = await self.run_tool_call_batch(tool_calls)
+            tool_results = await self._run_tool_call_batch(tool_calls)
 
             # Add tool results and continue the loop
             self._push_messages(map(as_tool_result_message, tool_results, tool_calls))
 
-    async def run_tool_call_batch(self, tool_calls: list[ToolCall]) -> list[ToolResult]:
+    async def _run_tool_call_batch(self, tool_calls: list[ToolCall]) -> list[ToolResult]:
         """
         Runs a batch of tool calls concurrently and returns their results.
         """
         async with asyncio.TaskGroup() as tg:
-            tasks = [tg.create_task(self.run_tool_call(tc)) for tc in tool_calls]
+            tasks = [tg.create_task(self._run_tool_call(tc)) for tc in tool_calls]
         return [task.result() for task in tasks]
 
-    async def run_tool_call(self, tool_call: ToolCall) -> ToolResult:
+    async def _run_tool_call(self, tool_call: ToolCall) -> ToolResult:
         """
         Executes a single tool call and returns the result.
         """
+        if self.tool_manager is None:
+            raise RuntimeError('No tool manager configured for this agent.')
         self.on_tool_call.publish(tool_call)
         return await self.tool_manager(tool_call)
 
-    async def transmit(self) -> AssistantMessage:
+    async def _transmit(self, *, reasoning: ModelReasoningLevel) -> AssistantMessage:
+        if self.backend is None:
+            raise RuntimeError('No LLM backend configured for this agent.')
+
         self.on_transmit.publish(None)
-        return await self.transmitter(self.messages)
+        return await self.backend(
+            session_id=self.session_id,
+            messages=self.messages,
+            reasoning=reasoning,
+            on_streaming_message=self.on_streaming_message.publish,
+        )
 
     def _push_messages(self, messages: Iterable[AgentMessage]):
         for msg in messages:
