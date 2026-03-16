@@ -189,15 +189,45 @@ type AssistantSubView = ReasoningView | AssistantResponseView | ToolCallView;
 class MutableContentView {
     readonly contentView: HTMLElement;
 
+    private _renderedContentLength: number;
+    private _textNode: Text;
+    private _pendingContentUpdate?: string;
+
     constructor(initialContent: string) {
+        this._textNode = new Text(initialContent);
+        this._renderedContentLength = initialContent.length;
         this.contentView = div({
             class: style.message_text,
-            text: initialContent
+            child: this._textNode
         });
     }
 
     syncContent(newContent: string) {
-        this.contentView.textContent = newContent;
+        const hasPendingUpdate = this._pendingContentUpdate != null;
+        this._pendingContentUpdate = newContent;
+        if (!hasPendingUpdate) {
+            this.scheduleContentUpdate();
+        }
+    }
+
+    private scheduleContentUpdate() {
+        requestAnimationFrame(() => {
+            const newContent = this._pendingContentUpdate;
+            this._pendingContentUpdate = undefined;
+
+            if (newContent == null) {
+                return; // Unexpected.
+            }
+
+            if (newContent.length >= this._renderedContentLength) {
+                const delta = newContent.slice(this._renderedContentLength);
+                this._textNode.appendData(delta);
+            } else {
+                // Unexpected.
+                this._textNode.data = newContent;
+            }
+            this._renderedContentLength = newContent.length;
+        });
     }
 }
 
