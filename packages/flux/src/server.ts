@@ -32,7 +32,10 @@ export class RpcServer {
     private readonly server: UnixRpcServer;
 
     constructor(params: RpcServerParams) {
-        const server = (this.server = new UnixRpcServer({ socketPath: params.socketPath }));
+        const server = (this.server = new UnixRpcServer({
+            socketPath: params.socketPath,
+            methodTimeout: 600_000 // 10 minutes
+        }));
         server.register<RequestKind>('session_start', this.startSession.bind(this));
         server.register<RequestKind>('transmit', this.handleTransmit.bind(this), {
             wantsSocket: true

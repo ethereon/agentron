@@ -41,7 +41,7 @@ class JsonRpcClient:
         socket_path: str,
         *,
         encoding: str = 'utf-8',
-        response_timeout: float = 30.0,
+        response_timeout: float = 600,  # 10 minutes
     ) -> None:
         self._socket_path = socket_path
         self._encoding = encoding
