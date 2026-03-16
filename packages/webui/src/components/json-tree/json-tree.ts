@@ -22,11 +22,9 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 function renderCollection(value: JsonCollection, label?: string, isRoot = false): HTMLElement {
-    const content = div({});
-    content.style.display = 'flex';
-    content.style.flexDirection = 'column';
-    content.style.gap = '0.25rem';
-    content.style.paddingLeft = '0.75rem';
+    const content = div({
+        class: style.json_tree_collection
+    });
 
     if (Array.isArray(value)) {
         if (value.length === 0) {
