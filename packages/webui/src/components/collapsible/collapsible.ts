@@ -45,11 +45,23 @@ export class Collapsible {
             ]
         });
 
-        this.header.onmousedown = () => this.setExpanded(!this._isExpanded);
+        const gutter = div({
+            class: style.collapsible_content_gutter
+        });
+
+        const toggle = () => this.setExpanded(!this._isExpanded);
+        this.header.onmousedown = toggle;
+        gutter.onmousedown = toggle;
 
         this.container = div({
             class: style.collapsible,
-            children: [this.header, this.subview]
+            children: [
+                this.header,
+                div({
+                    class: style.collapsible_content_container,
+                    children: [gutter, this.subview]
+                })
+            ]
         });
 
         const content = params.content;

@@ -15,7 +15,29 @@
     cursor: pointer
     user-select: none
 
+.at-collapsible-content-container
+    display: flex
+
+// Desiderata:
+//    Significant portion must be clickable (so no excessive margins)
+//    1px clickable border, centered
+//    Optically aligns with chevron + aligns adjacent content correctly
+.at-collapsible-content-gutter
+    flex: 0 0 16px
+    cursor: pointer
+    position: relative
+    margin-right: 5px
+    &::before
+        content: ""
+        position: absolute
+        left: 50%
+        transform: translateX(-50%)
+        width: 1px
+        height: 100%
+        background: $colors.border
+        transition: background 1s ease
+    &:hover::before
+        background: $colors.border_hover
+
 .at-collapsible-content
-    margin-left: 7px
-    padding-left: 14px
-    border-left: 1px solid $colors.border
+    flex: 1
