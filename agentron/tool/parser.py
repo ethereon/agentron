@@ -294,38 +294,98 @@ def _parse_interface_type(tp: type) -> dict:
 # ---------------------------------------------------------------------------
 
 
+def _format_description_lines(lines: list[str], section_re: re.Pattern[str]) -> str:
+    """Normalize non-Args docstring content into a readable description."""
+    cleaned: list[str] = []
+    previous_blank = False
+
+    for line in lines:
+        stripped = line.rstrip()
+        if not stripped.strip():
+            if cleaned and not previous_blank:
+                cleaned.append('')
+                previous_blank = True
+            continue
+
+        cleaned.append(stripped)
+        previous_blank = False
+
+    while cleaned and cleaned[-1] == '':
+        cleaned.pop()
+
+    blocks: list[str] = []
+    i = 0
+    while i < len(cleaned):
+        if cleaned[i] == '':
+            i += 1
+            continue
+
+        if section_re.match(cleaned[i]):
+            section_lines = [cleaned[i]]
+            i += 1
+            while i < len(cleaned) and cleaned[i] != '' and not section_re.match(cleaned[i]):
+                section_lines.append(cleaned[i])
+                i += 1
+            blocks.append('\n'.join(section_lines))
+            continue
+
+        paragraph_lines = [cleaned[i].strip()]
+        i += 1
+        while i < len(cleaned) and cleaned[i] != '' and not section_re.match(cleaned[i]):
+            paragraph_lines.append(cleaned[i].strip())
+            i += 1
+        blocks.append(' '.join(line for line in paragraph_lines if line))
+
+    return '\n\n'.join(blocks)
+
+
 def _parse_google_docstring(doc: str) -> tuple[str, dict[str, str]]:
     """
     Parse a Google-style docstring.
 
     Returns:
-        (summary, {param_name: description})
+        (description, {param_name: description})
     """
     doc = textwrap.dedent(doc).strip()
     lines = doc.splitlines()
 
     # Google-style section headers: word(s) followed by a colon at indent 0
     section_re = re.compile(r'^(\w[\w\s]*)\s*:\s*$')
+    args_section_names = {'args', 'arguments', 'parameters'}
 
-    # ---- Split into summary and sections ----
-    summary_lines: list[str] = []
+    def ensure_description_break() -> None:
+        if description_lines and description_lines[-1] != '':
+            description_lines.append('')
+
+    # ---- Split into description content and args block ----
+    description_lines: list[str] = []
     args_lines: list[str] = []
-    in_summary = True
     in_args = False
 
     for line in lines:
         m = section_re.match(line)
         if m:
+            was_in_args = in_args
             section_name = m.group(1).strip().lower()
-            in_summary = False
-            in_args = section_name in ('args', 'arguments', 'parameters')
+            in_args = section_name in args_section_names
+            if not in_args:
+                if was_in_args:
+                    ensure_description_break()
+                description_lines.append(line.rstrip())
             continue
-        if in_summary:
-            summary_lines.append(line.strip())
-        elif in_args:
-            args_lines.append(line)
 
-    summary = ' '.join(s for s in summary_lines if s)
+        if in_args:
+            if line.strip() and line == line.lstrip():
+                in_args = False
+                ensure_description_break()
+                description_lines.append(line.rstrip())
+                continue
+            args_lines.append(line)
+            continue
+
+        description_lines.append(line.rstrip())
+
+    description = _format_description_lines(description_lines, section_re)
 
     # ---- Parse the args block ----
     param_descriptions: dict[str, str] = {}
@@ -353,7 +413,7 @@ def _parse_google_docstring(doc: str) -> tuple[str, dict[str, str]]:
                 current_desc_lines.append(line.strip())
 
     flush()
-    return summary, param_descriptions
+    return description, param_descriptions
 
 
 # ---------------------------------------------------------------------------

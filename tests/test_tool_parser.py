@@ -471,16 +471,29 @@ class TestParseGoogleDocstring(unittest.TestCase):
         _, params = _parse_google_docstring(doc)
         self.assertEqual(params['x'], 'Line one. Line two. Line three.')
 
-    def test_returns_excluded_from_summary(self):
+    def test_returns_appended_to_description(self):
+        doc = """
+        Do the thing.
+
+        Args:
+            x: Some value.
+
+        Returns:
+            The result.
+        """
+        description, _ = _parse_google_docstring(doc)
+        self.assertEqual(description, 'Do the thing.\n\nReturns:\n    The result.')
+
+    def test_trailing_freeform_text_after_args_appended(self):
         doc = """
         Do the thing.
         Args:
             x: Some value.
-        Returns:
-            The result.
+        This function returns a computed string.
         """
-        summary, _ = _parse_google_docstring(doc)
-        self.assertNotIn('result', summary.lower())
+        description, params = _parse_google_docstring(doc)
+        self.assertEqual(description, 'Do the thing.\n\nThis function returns a computed string.')
+        self.assertEqual(params['x'], 'Some value.')
 
     def test_empty_args_section(self):
         doc = 'No-arg function summary.'
@@ -508,8 +521,9 @@ class TestParseGoogleDocstring(unittest.TestCase):
         Raises:
             ValueError: If bad.
         """
-        _, params = _parse_google_docstring(doc)
+        description, params = _parse_google_docstring(doc)
         self.assertEqual(list(params.keys()), ['x'])
+        self.assertEqual(description, 'Summary.\n\nReturns:\n    Something.\n\nRaises:\n    ValueError: If bad.')
 
 
 # ---------------------------------------------------------------------------
@@ -669,11 +683,28 @@ class TestGenerateToolSchemaHappyPath(unittest.TestCase):
         self.assertIn('Also this here', desc)
         self.assertNotIn('\n', desc)
 
-    def test_summary_excludes_returns(self):
-        self.assertNotIn('List of matching', generate_tool_schema(search_func)['description'])
+    def test_description_appends_returns(self):
+        description = generate_tool_schema(search_func)['description']
+        self.assertEqual(
+            description,
+            'Search for documents matching a query.\n\nReturns:\n    List of matching document IDs.',
+        )
 
     def test_summary_excludes_args_content(self):
         self.assertNotIn('search query string', generate_tool_schema(search_func)['description'])
+
+    def test_description_appends_freeform_trailing_text(self):
+        def f(x: int) -> None:
+            """Summary.
+            Args:
+                x: desc.
+            This function returns a computed value.
+            """
+
+        self.assertEqual(
+            generate_tool_schema(f)['description'],
+            'Summary.\n\nThis function returns a computed value.',
+        )
 
     # Various type forms
 
