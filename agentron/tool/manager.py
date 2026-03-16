@@ -5,9 +5,7 @@ from agentron.messages import ToolCall, ToolResult
 from agentron.utils.messages import as_content
 from agentron.utils.asyn import maybe_await
 from agentron.tool.parser import generate_tool_schema
-
-
-class ToolError(RuntimeError): ...
+from agentron.tool.validation import ToolError, validate_tool_arguments
 
 
 class ToolManager(Protocol):
@@ -34,6 +32,7 @@ class CoreToolManager(ToolManager):
     def __init__(self, tools: Sequence[ToolFunction]):
         self.schema = [generate_tool_schema(tool) for tool in tools]
         self.tools_by_name = {tool_schema['name']: tool for tool_schema, tool in zip(self.schema, tools)}
+        self.schema_by_name = {tool_schema['name']: tool_schema for tool_schema in self.schema}
 
     async def __call__(self, tool_call: ToolCall) -> ToolResult:
         try:
@@ -41,8 +40,8 @@ class CoreToolManager(ToolManager):
             if not tool:
                 raise ToolError(f'No tool named {tool_call["name"]} found.')
 
-            # TODO: Validate tool arguments against a schema
-            tool_kwargs = tool_call['arguments']
+            tool_schema = self.schema_by_name[tool_call['name']]
+            tool_kwargs = validate_tool_arguments(tool_schema, tool_call['arguments'])
             result = await maybe_await(tool(**tool_kwargs))
 
             return ToolResult(

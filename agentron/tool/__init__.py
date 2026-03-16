@@ -1,1 +1,1 @@
-from .manager import ToolError
+from .validation import ToolError
