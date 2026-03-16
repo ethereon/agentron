@@ -30,6 +30,10 @@ def _format_path(path: str) -> str:
     return f'"{path}"' if path else 'the arguments object'
 
 
+def _child_path(path: str, key: Any) -> str:
+    return f'{path}.{key}' if path else str(key)
+
+
 def _format_enum_values(values: list[Any]) -> str:
     return ', '.join(repr(value) for value in values)
 
@@ -102,7 +106,7 @@ def _collect_schema_issues(value: Any, schema: dict[str, Any], path: str, issues
                     _collect_schema_issues(item, item_schema, f'{path}[{index}]', issues)
             return
         case 'object':
-            properties = schema.get('properties', {})
+            properties = schema.get('properties')
             required = schema.get('required', [])
             additional_properties = schema.get('additionalProperties')
 
@@ -111,18 +115,21 @@ def _collect_schema_issues(value: Any, schema: dict[str, Any], path: str, issues
                     required_path = f'{path}.{required_key}' if path else required_key
                     issues.append(f'Missing required argument {_format_path(required_path)}.')
 
-            if properties:
+            if properties is not None:
                 for key in value:
                     if key not in properties:
                         if additional_properties is None:
-                            unexpected_path = f'{path}.{key}' if path else key
+                            unexpected_path = _child_path(path, key)
                             issues.append(f'Unexpected argument {_format_path(unexpected_path)}.')
                             continue
-                        _collect_schema_issues(value[key], additional_properties, f'{path}.{key}' if path else key, issues)
+                        if not isinstance(key, str):
+                            issues.append(f'{_format_path(path)} must use string keys; got key {key!r}.')
+                            continue
+                        _collect_schema_issues(value[key], additional_properties, _child_path(path, key), issues)
 
                 for key, property_schema in properties.items():
                     if key in value:
-                        child_path = f'{path}.{key}' if path else key
+                        child_path = _child_path(path, key)
                         _collect_schema_issues(value[key], property_schema, child_path, issues)
                 return
 
@@ -131,7 +138,7 @@ def _collect_schema_issues(value: Any, schema: dict[str, Any], path: str, issues
                     if not isinstance(key, str):
                         issues.append(f'{_format_path(path)} must use string keys; got key {key!r}.')
                         continue
-                    child_path = f'{path}.{key}' if path else key
+                    child_path = _child_path(path, key)
                     _collect_schema_issues(child_value, additional_properties, child_path, issues)
             return
 

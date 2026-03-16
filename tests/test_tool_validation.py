@@ -268,6 +268,21 @@ class TestValidateToolArguments(unittest.TestCase):
 
         self.assertIs(validated_arguments, arguments)
 
+    def test_extra_args_provided_for_no_args(self):
+        def nullary() -> str:
+            """
+            A tool that accepts no arguments.
+            """
+            return 'foo'
+
+        with self.assertRaises(ToolError) as ctx:
+            validate_tool_arguments(
+                generate_tool_schema(nullary),
+                {'unexpected': 1},
+            )
+
+        self.assertIn('Unexpected argument "unexpected".', str(ctx.exception))
+
     def test_accepts_dict_additional_properties(self):
         arguments = {'weights': {'alpha': 1, 'beta': 2}}
 
