@@ -14,7 +14,7 @@ export type ModelApi =
 
 export type ModelInputModality = 'text' | 'image';
 
-export type ModelReasoningLevel = 'disabled' | 'low' | 'medium' | 'high' | 'extra_high';
+export type ModelReasoningLevel = 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
 
 export interface ModelPricing {
     input: number;

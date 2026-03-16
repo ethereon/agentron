@@ -25,4 +25,4 @@ class SessionStartRequest(TypedDict):
 class TransmitRequest(TypedDict):
     session_id: str
     messages: list[AgentMessage]
-    reasoning: NotRequired[ModelReasoningLevel]
+    reasoning: ModelReasoningLevel | None

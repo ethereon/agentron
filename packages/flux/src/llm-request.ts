@@ -24,5 +24,3 @@ export interface LLMRequest {
     // If omitted, a default value of MEDIUM is assumed (if the model supports reasoning levels).
     reasoning?: ModelReasoningLevel;
 }
-
-export const kDefaultReasoningLevel: ModelReasoningLevel = 'medium';

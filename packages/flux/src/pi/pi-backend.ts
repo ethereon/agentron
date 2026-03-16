@@ -1,12 +1,11 @@
 import * as pi from '@mariozechner/pi-ai';
 
-import { log } from '../logging.js';
-import { kDefaultReasoningLevel, type LLMRequest, type ToolSet } from '../llm-request.js';
+import type { LLMRequest, ToolSet } from '../llm-request.js';
+import type { Model } from '../model.js';
+import type { StreamingMessageType, AssistantMessage, StreamingMessage } from '../agent-message.js';
 import { fromPiAssistantMessage, translateToPi } from './pi-message-translator.js';
 import { jsonSchemaToolToPiTool } from './pi-tool-translator.js';
 import { asPiModel } from './pi-model-translator.js';
-import type { Model, ModelReasoningLevel } from '../model.js';
-import type { StreamingMessageType, AssistantMessage, StreamingMessage } from '../agent-message.js';
 
 export type PiModel = pi.Model<pi.KnownApi>;
 
@@ -38,7 +37,7 @@ export class PiBackend {
         const stream = pi.streamSimple(this.model, context, {
             apiKey: this.apiKey,
             signal: request.abortSignal,
-            reasoning: asThinkingLevel(request.reasoning),
+            reasoning: request.reasoning,
             headers: {
                 'HTTP-Referer': 'https://github.com/ethereon/agentron',
                 'X-Title': 'Agentron'
@@ -65,35 +64,6 @@ export class PiBackend {
             id: responseId,
             message: finalMessage
         });
-    }
-}
-
-function asThinkingLevel(level: ModelReasoningLevel | undefined): pi.ThinkingLevel | undefined {
-    if (level == null) {
-        // No reasoning level explicitly specified.
-        // Use the default (usually medium).
-        // Note that we don't want to return undefined here as that would effectively
-        // disable reasoning for pi (at least for providers like Z.ai).
-        level = kDefaultReasoningLevel;
-    }
-
-    switch (level) {
-        case 'disabled':
-            // For pi, a falsey/omitted reasoning level is equivalent to disabled.
-            return undefined;
-
-        case 'low':
-        case 'medium':
-        case 'high':
-            return level;
-
-        case 'extra_high':
-            return 'xhigh';
-
-        default:
-            level satisfies never;
-            log.warn(`Received unrecognized reasoning level: ${level}.`);
-            return asThinkingLevel(kDefaultReasoningLevel);
     }
 }
 

@@ -20,11 +20,11 @@ type ModelInputModality = Literal[
 ]
 
 type ModelReasoningLevel = Literal[
-    'disabled',
+    'minimal',
     'low',
     'medium',
     'high',
-    'extra_high',
+    'xhigh',
 ]
 
 

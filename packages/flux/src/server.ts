@@ -106,7 +106,7 @@ export class RpcServer {
                 tools: session.tools,
                 abortSignal: session.abortController.signal,
                 sessionId: request.session_id,
-                reasoning: request.reasoning,
+                reasoning: request.reasoning ?? undefined,
                 onStreamingMessage: msg => {
                     this.server.notify<NotificationKind>(socket, 'streaming_message', [msg]);
                 }
@@ -129,7 +129,7 @@ export class RpcServer {
         if (!session) {
             throw new Error(`Session ID ${sessionId} not found.`);
         }
-        if (request.reasoning !== undefined) {
+        if (request.reasoning != null) {
             if (!isModelReasoningLevel(request.reasoning)) {
                 throw new Error(`Invalid reasoning level: ${request.reasoning}`);
             }

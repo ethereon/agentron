@@ -41,7 +41,7 @@ class FluxBackend(LLMBackend):
         *,
         session_id: str,
         messages: list[api.AgentMessage],
-        reasoning: api.ModelReasoningLevel,
+        reasoning: api.ModelReasoningLevel | None,
         on_streaming_message: StreamingMessageHandler,
     ) -> AssistantMessage:
         if self._server is None:

@@ -46,10 +46,6 @@ export function isModel(obj: any): obj is Model {
 
 export function isModelReasoningLevel(obj: any): obj is ModelReasoningLevel {
     return (
-        obj === 'disabled' ||
-        obj === 'low' ||
-        obj === 'medium' ||
-        obj === 'high' ||
-        obj === 'extra_high'
+        obj === 'minimal' || obj === 'low' || obj === 'medium' || obj === 'high' || obj === 'xhigh'
     );
 }

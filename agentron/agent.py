@@ -37,7 +37,7 @@ class Agent:
     async def ask(
         self,
         prompt: str | Content,
-        reasoning: ModelReasoningLevel = 'medium',
+        reasoning: ModelReasoningLevel | None = None,
     ) -> str | None:
         self._push_message(make_user_message(prompt))
         response = await self._resume(reasoning=reasoning)
@@ -52,7 +52,7 @@ class Agent:
     async def _resume(
         self,
         *,
-        reasoning: ModelReasoningLevel,
+        reasoning: ModelReasoningLevel | None,
     ) -> AssistantMessage:
         while True:
             # Get the LLM's response
@@ -88,7 +88,7 @@ class Agent:
         self.on_tool_call.publish(tool_call)
         return await self.tool_manager(tool_call)
 
-    async def _transmit(self, *, reasoning: ModelReasoningLevel) -> AssistantMessage:
+    async def _transmit(self, *, reasoning: ModelReasoningLevel | None) -> AssistantMessage:
         if self.backend is None:
             raise RuntimeError('No LLM backend configured for this agent.')
 

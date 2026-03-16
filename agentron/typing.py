@@ -28,6 +28,6 @@ class LLMBackend(Protocol):
         *,
         session_id: str,
         messages: list[AgentMessage],
-        reasoning: ModelReasoningLevel,
+        reasoning: ModelReasoningLevel | None,
         on_streaming_message: StreamingMessageHandler,
     ) -> AssistantMessage: ...

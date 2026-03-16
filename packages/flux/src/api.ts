@@ -18,5 +18,5 @@ export interface SessionStartRequest {
 export interface TransmitRequest {
     session_id: string;
     messages: AgentMessage[];
-    reasoning?: ModelReasoningLevel;
+    reasoning: ModelReasoningLevel | null;
 }
