@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import sys
 
-from agentron.session import AgentSession
+from agentron.agent import Agent
 from agentron.utils.publisher import SubscriptionStore
 from agentron.messages import (
     AgentMessage,
@@ -29,11 +29,18 @@ class Ansi:
 
 class ConsoleRenderer:
     """
-    Renders session activity to a terminal stream.
+    Renders agent activity to a terminal stream.
     """
 
-    def __init__(self, session: AgentSession, stream=sys.stdout, *, use_color: bool | None = None, display_system_prompt=False):
-        self.session = session
+    def __init__(
+        self,
+        agent: Agent,
+        stream=sys.stdout,
+        *,
+        use_color: bool | None = None,
+        display_system_prompt=False,
+    ):
+        self.agent = agent
         self.stream = stream
         self.use_color = self._detect_color_support() if use_color is None else use_color
         self.display_system_prompt = display_system_prompt
@@ -52,18 +59,18 @@ class ConsoleRenderer:
         self._subscribe()
 
     def close(self) -> None:
-        """Unsubscribe from session events."""
+        """Unsubscribe from agent events."""
         self.subscriptions.clear()
 
     def _subscribe(self) -> None:
         self.subscriptions.add(
-            self.session.on_new_message.subscribe(self._on_new_message),
-            self.session.on_streaming_message.subscribe(self._on_streaming_message),
-            self.session.on_tool_call.subscribe(self._on_tool_call),
+            self.agent.on_new_message.subscribe(self._on_new_message),
+            self.agent.on_streaming_message.subscribe(self._on_streaming_message),
+            self.agent.on_tool_call.subscribe(self._on_tool_call),
         )
 
     def _render_existing_messages(self) -> None:
-        for message in self.session.messages:
+        for message in self.agent.messages:
             match message['mtype']:
                 case 'user':
                     self._print_user_message(message)
