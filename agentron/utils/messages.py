@@ -70,6 +70,8 @@ def extract_assistant_text(response: AssistantMessage) -> str | None:
     for content in response['content']:
         if content['type'] == 'text':
             return content['text']
+    # No text content found (e.g. if the assistant only returned tool calls)
+    return None
 
 
 def as_tool_result_message(tool_result: ToolResult, tool_call: ToolCall) -> ToolResultMessage:
