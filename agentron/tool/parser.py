@@ -142,6 +142,19 @@ def _resolve_type(tp: Any) -> dict:
     )
 
 
+def _callable_name(obj: Callable) -> str:
+    """Return a human-friendly name for any callable."""
+    # Functions, methods, builtins, classes
+    if hasattr(obj, '__name__'):
+        return obj.__name__
+
+    # Callable instances
+    if hasattr(obj, '__call__'):
+        return obj.__class__.__name__
+
+    raise ValueError(f'Failed to get a name for tool function: {obj}')
+
+
 # ---------------------------------------------------------------------------
 # TypedDict / dataclass field-doc parsing
 # ---------------------------------------------------------------------------
@@ -371,6 +384,11 @@ def generate_tool_schema(func: Callable) -> ToolSchema:
         TypeError  -- type annotation issues or unsupported types
         ValueError -- docstring / argument consistency issues
     """
+    func_name = _callable_name(func)
+
+    if (not inspect.isfunction(func)) and hasattr(func, '__call__'):
+        func = func.__call__
+
     sig = inspect.signature(func)
     params = sig.parameters
 
@@ -378,26 +396,26 @@ def generate_tool_schema(func: Callable) -> ToolSchema:
     try:
         hints = get_type_hints(func)
     except Exception as exc:
-        raise TypeError(f"Could not resolve type hints for '{func.__name__}': {exc}") from exc
+        raise TypeError(f"Could not resolve type hints for '{func_name}': {exc}") from exc
 
     # --- Return type required ---
     if 'return' not in hints:
-        raise TypeError(f"Function '{func.__name__}' is missing a return type annotation.")
+        raise TypeError(f"Function '{func_name}' is missing a return type annotation.")
 
     # --- No positional-only parameters ---
     for name, param in params.items():
         if param.kind is inspect.Parameter.POSITIONAL_ONLY:
-            raise ValueError(f"Function '{func.__name__}' has a positional-only parameter '{name}'. Positional-only parameters (before '/' in the signature) are not supported.")
+            raise ValueError(f"Function '{func_name}' has a positional-only parameter '{name}'. Positional-only parameters (before '/' in the signature) are not supported.")
 
     # --- Every parameter must have a type annotation ---
     for name in params:
         if name not in hints:
-            raise TypeError(f"Parameter '{name}' of '{func.__name__}' is missing a type annotation.")
+            raise TypeError(f"Parameter '{name}' of '{func_name}' is missing a type annotation.")
 
     # --- Parse docstring ---
     raw_doc = inspect.getdoc(func) or ''
     if not raw_doc:
-        raise ValueError(f"Function '{func.__name__}' has no docstring.")
+        raise ValueError(f"Function '{func_name}' has no docstring.")
 
     summary, param_docs = _parse_google_docstring(raw_doc)
 
@@ -407,11 +425,11 @@ def generate_tool_schema(func: Callable) -> ToolSchema:
 
     missing_in_doc = sig_params - doc_params
     if missing_in_doc:
-        raise ValueError(f"Function '{func.__name__}': the following parameters are not described in the docstring 'Args:' section: {sorted(missing_in_doc)}")
+        raise ValueError(f"Function '{func_name}': the following parameters are not described in the docstring 'Args:' section: {sorted(missing_in_doc)}")
 
     unknown_in_doc = doc_params - sig_params
     if unknown_in_doc:
-        raise ValueError(f"Function '{func.__name__}': the docstring 'Args:' section references unknown parameters: {sorted(unknown_in_doc)}")
+        raise ValueError(f"Function '{func_name}': the docstring 'Args:' section references unknown parameters: {sorted(unknown_in_doc)}")
 
     # --- Build properties ---
     properties: dict = {}
@@ -434,7 +452,7 @@ def generate_tool_schema(func: Callable) -> ToolSchema:
                 prop_schema = _resolve_type(tp)
                 required.append(name)
         except TypeError as exc:
-            raise TypeError(f"Parameter '{name}' of '{func.__name__}': {exc}") from exc
+            raise TypeError(f"Parameter '{name}' of '{func_name}': {exc}") from exc
 
         prop_schema['description'] = param_docs[name]
         properties[name] = prop_schema
@@ -443,14 +461,14 @@ def generate_tool_schema(func: Callable) -> ToolSchema:
     try:
         _resolve_type(hints['return'])
     except TypeError as exc:
-        raise TypeError(f"Return type of '{func.__name__}': {exc}") from exc
+        raise TypeError(f"Return type of '{func_name}': {exc}") from exc
 
     parameters: dict = {'type': 'object', 'properties': properties}
     if required:
         parameters['required'] = required
 
     return {
-        'name': func.__name__,
+        'name': func_name,
         'description': summary,
         'parameters': parameters,
     }

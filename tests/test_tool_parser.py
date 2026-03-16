@@ -1009,5 +1009,136 @@ class TestEdgeCases(unittest.TestCase):
         self.assertIn('multi-word summary', generate_tool_schema(f)['description'])
 
 
+# ---------------------------------------------------------------------------
+# 9. Callable classes
+# ---------------------------------------------------------------------------
+
+
+class SearchTool:
+    def __call__(self, query: str, max_results: Optional[int] = None) -> None:
+        """
+        Search for documents.
+        Args:
+            query: The search query string.
+            max_results: Maximum number of results to return.
+        """
+        ...
+
+
+class NoDocTool:
+    def __call__(self, x: int) -> None:
+        pass
+
+
+class MissingAnnotationTool:
+    def __call__(self, x, y: str) -> None:
+        """
+        Do something.
+        Args:
+            x: First arg.
+            y: Second arg.
+        """
+        ...
+
+
+class ComplexParamTool:
+    def __call__(self, items: List[str], mode: Union[int, str], flag: bool = False) -> None:
+        """
+        Process items.
+        Args:
+            items: The list of items to process.
+            mode: An integer or string mode selector.
+            flag: Optional boolean flag.
+        """
+        ...
+
+
+class TestCallableClasses(unittest.TestCase):
+    # --- Name ---
+
+    def test_name_is_class_name(self):
+        schema = generate_tool_schema(SearchTool())
+        self.assertEqual(schema['name'], 'SearchTool')
+
+    # --- Top-level schema structure ---
+
+    def test_has_description(self):
+        schema = generate_tool_schema(SearchTool())
+        self.assertEqual(schema['description'], 'Search for documents.')
+
+    def test_has_parameters_object(self):
+        schema = generate_tool_schema(SearchTool())
+        self.assertEqual(schema['parameters']['type'], 'object')
+
+    # --- self is excluded ---
+
+    def test_self_not_in_properties(self):
+        schema = generate_tool_schema(SearchTool())
+        self.assertNotIn('self', _props(schema))
+
+    # --- Required / optional ---
+
+    def test_required_param_in_required(self):
+        schema = generate_tool_schema(SearchTool())
+        self.assertIn('query', _required(schema))
+
+    def test_optional_param_not_in_required(self):
+        schema = generate_tool_schema(SearchTool())
+        self.assertNotIn('max_results', _required(schema))
+
+    def test_default_value_removes_from_required(self):
+        schema = generate_tool_schema(ComplexParamTool())
+        self.assertNotIn('flag', _required(schema))
+
+    # --- Type resolution ---
+
+    def test_primitive_type_resolved(self):
+        schema = generate_tool_schema(SearchTool())
+        self.assertEqual(_props(schema)['query']['type'], 'string')
+
+    def test_optional_type_uses_inner_type(self):
+        # Optional[int] with None stripped -> {"type": "integer"}
+        schema = generate_tool_schema(SearchTool())
+        self.assertEqual(_props(schema)['max_results']['type'], 'integer')
+
+    def test_list_type_resolved(self):
+        schema = generate_tool_schema(ComplexParamTool())
+        items_schema = _props(schema)['items']
+        self.assertEqual(items_schema['type'], 'array')
+        self.assertEqual(items_schema['items']['type'], 'string')
+
+    def test_union_param_type_array(self):
+        schema = generate_tool_schema(ComplexParamTool())
+        mode_schema = _props(schema)['mode']
+        self.assertIsInstance(mode_schema['type'], list)
+        self.assertCountEqual(mode_schema['type'], ['integer', 'string'])
+
+    # --- Descriptions ---
+
+    def test_param_description_from_call_docstring(self):
+        schema = generate_tool_schema(SearchTool())
+        self.assertEqual(_props(schema)['query']['description'], 'The search query string.')
+
+    # --- Validation errors ---
+
+    def test_no_docstring_raises(self):
+        # inspect.getdoc on bound __call__ may inherit a parent-class docstring
+        # through the MRO, so the exact ValueError message varies.  The
+        # important guarantee is that schema generation fails.
+        with self.assertRaises(ValueError):
+            generate_tool_schema(NoDocTool())
+
+    def test_missing_annotation_raises(self):
+        with self.assertRaises(TypeError) as ctx:
+            generate_tool_schema(MissingAnnotationTool())
+        self.assertIn('x', str(ctx.exception))
+        self.assertIn('missing a type annotation', str(ctx.exception))
+
+    def test_missing_annotation_names_class(self):
+        with self.assertRaises(TypeError) as ctx:
+            generate_tool_schema(MissingAnnotationTool())
+        self.assertIn('MissingAnnotationTool', str(ctx.exception))
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
