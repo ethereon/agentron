@@ -44,7 +44,7 @@ class WebModelRepo[T]:
         return match
 
     def _is_supported_provider(self, provider: str) -> bool:
-        # May be overriden by subclasses to short-circuit unsupported providers.
+        # May be overridden by subclasses to short-circuit unsupported providers.
         return True
 
     def _maybe_load_cached_manifest(self) -> bool:
