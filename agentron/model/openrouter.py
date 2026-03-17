@@ -69,7 +69,9 @@ class OpenRouterRepo(WebModelRepo[OpenRouterModelManifest]):
 
     def _find(self, provider: str, model: str) -> Model | None:
         assert self._manifest is not None
-        assert provider == 'openrouter'
+
+        if provider != 'openrouter':
+            return None
 
         for model_data in self._manifest['data']:
             if model_data['id'] == model or model_data['canonical_slug'] == model:
