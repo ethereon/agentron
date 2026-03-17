@@ -1,4 +1,5 @@
 import json
+import logging
 
 from typing import Any, TypeGuard
 from urllib.error import HTTPError, URLError
@@ -6,6 +7,8 @@ from urllib.request import urlopen, Request
 
 from agentron.model.types import Model
 from agentron.path import get_cache_dir
+
+logger = logging.getLogger(__name__)
 
 
 class MetadataFetchError(RuntimeError):
@@ -46,10 +49,8 @@ class WebModelRepo[T]:
         except (OSError, json.JSONDecodeError):
             return False
 
-        if not isinstance(data, dict):
-            return False
-
         if not self.validate(data):
+            logger.warning(f'Cached manifest at {self._cache_path} failed validation.')
             return False
 
         self._manifest = data
@@ -78,11 +79,8 @@ class WebModelRepo[T]:
 
         data = self._transform_payload(data)
 
-        if not isinstance(data, (dict, list)):
-            raise MetadataFetchError(f'Manifest from {self._url} must be a JSON collection.')
-
         if not self.validate(data):
-            raise MetadataFetchError(f'Manifest from {self._url} has invalid structure.')
+            raise MetadataFetchError(f'Manifest from {self._url} failed validation.')
 
         data = self._filter_validated(data)
         self._write_cached_manifest(data)
@@ -109,7 +107,7 @@ class WebModelRepo[T]:
 
     def validate(self, data: dict | list) -> TypeGuard[T]:
         # Hook for optional subclass validation
-        return True
+        return isinstance(data, (dict, list))
 
     def _find(self, provider: str, model: str) -> Model | None:
         raise NotImplementedError()
