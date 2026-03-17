@@ -52,10 +52,6 @@ class OpenRouterTopProvider(TypedDict, total=False):
     max_completion_tokens: int
 
 
-class OpenRouterModelResponse(TypedDict):
-    data: list[OpenRouterModelData]
-
-
 class OpenRouterModelManifest(TypedDict):
     data: list[OpenRouterModelData]
 
