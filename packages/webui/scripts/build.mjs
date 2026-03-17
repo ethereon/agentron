@@ -26,6 +26,9 @@ async function build() {
     }
     await fs.promises.mkdir(kOutputDir, { recursive: true });
 
+    // Copy the static assets dir to the output dir
+    await fs.promises.cp('assets', path.join(kOutputDir, 'assets'), { recursive: true });
+
     const tasks = [
         fs.promises.copyFile('src/index.html', path.join(kOutputDir, 'index.html')),
 

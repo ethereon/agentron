@@ -349,7 +349,10 @@ class ToolDetailsView {
         if (result.internal_error) {
             resultText += '\n\nInternal Error:\n' + result.internal_error;
         }
-        this.resultView = div({ text: resultText });
+        this.resultView = div({
+            class: style.tool_call_result,
+            text: resultText
+        });
         this.tabView?.selectTabAtIndex(1);
     }
 

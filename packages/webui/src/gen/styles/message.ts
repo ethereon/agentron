@@ -5,5 +5,6 @@ export const reasoning = 'at-reasoning';
 export const tool_call_details = 'at-tool-call-details';
 export const tool_call_header = 'at-tool-call-header';
 export const tool_call_name = 'at-tool-call-name';
+export const tool_call_result = 'at-tool-call-result';
 export const tool_call_status_icon = 'at-tool-call-status-icon';
 export const failed = 'failed';

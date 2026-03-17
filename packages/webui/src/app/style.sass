@@ -1,4 +1,5 @@
 @use colors
+@use typography
 
 // Layout
 $max_container_width: 820px
@@ -22,7 +23,7 @@ body
     color: $colors.fg
     text-rendering: optimizeLegibility
     -webkit-font-smoothing: antialiased
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif
+    font-family: $typography.ui_font, system-ui, -apple-system, Segoe UI, Roboto, sans-serif
     overscroll-behavior-x: none
     text-wrap: pretty
 

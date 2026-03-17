@@ -1,5 +1,6 @@
 @use session
 @use colors
+@use typography
 
 .at-message-text
     white-space: pre-wrap
@@ -39,3 +40,7 @@
     color: #22c55e
     &.failed
         color: #ef4444
+
+.at-tool-call-result
+    font-family: $typography.mono_font
+    font-size: 0.85rem

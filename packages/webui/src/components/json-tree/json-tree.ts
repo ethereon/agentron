@@ -65,7 +65,13 @@ function renderPrimitive(label: string | undefined, value: unknown): HTMLElement
         });
     }
     return div({
-        children: [span({ class: style.json_tree_label, text: `${label}: ` }), span({ text })]
+        children: [
+            span({ class: style.json_tree_label, text: `${label}: ` }),
+            span({
+                class: style.json_tree_primitive,
+                text
+            })
+        ]
     });
 }
 
