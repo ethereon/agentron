@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import NotRequired, TypedDict
 
 from agentron.model.types import Model, ModelInputModality, ModelPricing
-from agentron.model.web_repo import WebModelRepo
+from agentron.model.web_repo import WebModelRepo, MetadataFetchError
 
 FALLBACK_CONTEXT_WINDOW = 4096
 FALLBACK_MAX_TOKENS = 4096
@@ -81,10 +81,12 @@ class OpenRouterRepo(WebModelRepo[OpenRouterModelManifest]):
     def _transform_payload(self, data):
         # Unwrap from the outer {data: ...} envelope
         if not isinstance(data, dict):
-            return data  # Unexpected
+            raise MetadataFetchError('OpenRouter manifest has incorrect type.')
+
         entries = data.get('data')
         if not isinstance(entries, list):
-            return data  # Unexpected
+            raise MetadataFetchError('OpenRouter manifest has invalid data list.')
+
         return entries
 
     def _filter_validated(self, data: OpenRouterModelManifest) -> OpenRouterModelManifest:
