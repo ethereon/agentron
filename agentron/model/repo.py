@@ -7,6 +7,13 @@ from agentron.model.types import Model
 class ModelRepo(Protocol):
     def get_model(self, provider: str, model: str) -> Model: ...
 
+    def get_priority(self, provider: str) -> int:
+        """
+        Repositories with higher priority will be searched first when looking up models.
+        The default priority is 0.
+        """
+        ...
+
 
 _repos: list[ModelRepo] = []
 
@@ -15,7 +22,13 @@ def get_repos(provider: str) -> list[ModelRepo]:
     global _repos
     if not _repos:
         _repos = [ModelsDevRepo()]
-    return _repos
+
+    # Sort repos by priority for the given provider
+    return sorted(
+        _repos,
+        key=lambda repo: repo.get_priority(provider),
+        reverse=True,
+    )
 
 
 def get_model(model: str, provider: str | None = None) -> Model:

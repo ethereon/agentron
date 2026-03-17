@@ -46,7 +46,7 @@ class ModelsDevProviderData(TypedDict, total=False):
     models: dict[str, ModelsDevModelData]
 
 
-ModelsDevManifest = dict[str, ModelsDevProviderData]
+type ModelsDevManifest = dict[str, ModelsDevProviderData]
 
 
 class ModelsDevRepo(WebModelRepo[ModelsDevManifest]):
@@ -55,6 +55,9 @@ class ModelsDevRepo(WebModelRepo[ModelsDevManifest]):
             url=MODELS_DEV_URL,
             cache_name='models.dev.json',
         )
+
+    def get_priority(self, provider: str) -> int:
+        return 0
 
     def _find(self, provider: str, model: str) -> Model | None:
         assert self._manifest is not None
