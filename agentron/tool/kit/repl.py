@@ -6,7 +6,7 @@ import traceback
 import contextlib
 
 
-class PythonREPL:
+class RunInPythonREPL:
     def __init__(self):
         self.main_module = types.ModuleType(
             '__main__',  # __name__

@@ -1089,7 +1089,7 @@ class TestCallableClasses(unittest.TestCase):
 
     def test_name_is_class_name(self):
         schema = generate_tool_schema(SearchTool())
-        self.assertEqual(schema['name'], 'SearchTool')
+        self.assertEqual(schema['name'], 'search_tool')
 
     # --- Top-level schema structure ---
 
@@ -1168,7 +1168,7 @@ class TestCallableClasses(unittest.TestCase):
     def test_missing_annotation_names_class(self):
         with self.assertRaises(TypeError) as ctx:
             generate_tool_schema(MissingAnnotationTool())
-        self.assertIn('MissingAnnotationTool', str(ctx.exception))
+        self.assertIn('missing_annotation_tool', str(ctx.exception))
 
 
 if __name__ == '__main__':

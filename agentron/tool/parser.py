@@ -150,7 +150,11 @@ def _callable_name(obj: Callable) -> str:
 
     # Callable instances
     if hasattr(obj, '__call__'):
-        return obj.__class__.__name__
+        name = obj.__class__.__name__
+        # Convert to snake_case if it's CamelCase
+        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+        snake = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+        return snake
 
     raise ValueError(f'Failed to get a name for tool function: {obj}')
 
