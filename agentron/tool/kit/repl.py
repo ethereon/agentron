@@ -5,6 +5,8 @@ import builtins
 import traceback
 import contextlib
 
+from agentron.tool.validation import ToolError
+
 
 class RunInPythonREPL:
     def __init__(self):
@@ -32,7 +34,7 @@ class RunInPythonREPL:
             module = ast.parse(code, mode='exec')
         except Exception:
             traceback.print_exc(file=output_buffer)
-            return output_buffer.getvalue()
+            raise ToolError(output_buffer.getvalue())
 
         temp_result_name = None
         if module.body and isinstance(module.body[-1], ast.Expr):
@@ -49,13 +51,14 @@ class RunInPythonREPL:
             compiled = compile(module, '<repl>', 'exec')
         except Exception:
             traceback.print_exc(file=output_buffer)
-            return output_buffer.getvalue()
+            raise ToolError(output_buffer.getvalue())
 
         with contextlib.redirect_stdout(output_buffer), contextlib.redirect_stderr(output_buffer):
             try:
                 exec(compiled, self.globals, self.globals)
             except Exception:
                 traceback.print_exc()
+                raise ToolError(output_buffer.getvalue())
 
         if temp_result_name is not None and temp_result_name in self.globals:
             result_value = self.globals.pop(temp_result_name)
