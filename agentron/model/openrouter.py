@@ -108,12 +108,12 @@ def translate_pricing(pricing: OpenRouterPricing | None) -> ModelPricing:
     )
 
 
-def convert_price(price_str: str | None) -> int:
+def convert_price(price_str: str | None) -> float:
     if price_str is None:
         return 0
     try:
-        price = float(price_str)
-        return int(price * 1_000_000)
+        # Convert from $/token to $/million tokens
+        return float(price_str) * 1_000_000
     except ValueError:
         pass
     return 0
