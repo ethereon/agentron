@@ -52,8 +52,7 @@ class OpenRouterTopProvider(TypedDict, total=False):
     max_completion_tokens: int
 
 
-class OpenRouterModelManifest(TypedDict):
-    data: list[OpenRouterModelData]
+type OpenRouterModelManifest = list[OpenRouterModelData]
 
 
 class OpenRouterRepo(WebModelRepo[OpenRouterModelManifest]):
@@ -63,22 +62,40 @@ class OpenRouterRepo(WebModelRepo[OpenRouterModelManifest]):
             cache_name='openrouter.json',
         )
 
+    def get_priority(self, provider: str) -> int:
+        return 10 if provider == 'openrouter' else 0
+
     def _find(self, provider: str, model: str) -> Model | None:
         assert self._manifest is not None
 
         if provider != 'openrouter':
             return None
 
-        for model_data in self._manifest['data']:
+        for model_data in self._manifest:
             if model_data['id'] == model or model_data['canonical_slug'] == model:
-                return translate_model(model_data)
+                return _translate_model(model_data)
         return None
 
-    def get_priority(self, provider: str) -> int:
-        return 10 if provider == 'openrouter' else 0
+    def _transform_payload(self, data):
+        # Unwrap from the outer {data: ...} envelope
+        if not isinstance(data, dict):
+            return data  # Unexpected
+        entries = data.get('data')
+        if not isinstance(entries, list):
+            return data  # Unexpected
+        return entries
+
+    def _filter_validated(self, data: OpenRouterModelManifest) -> OpenRouterModelManifest:
+        # Constrain to models that support tool calls
+        return list(filter(_supports_tool_call, data))
 
 
-def translate_model(data: OpenRouterModelData) -> Model:
+def _supports_tool_call(model: OpenRouterModelData) -> bool:
+    params = model.get('supported_parameters')
+    return isinstance(params, list) and 'tools' in params
+
+
+def _translate_model(data: OpenRouterModelData) -> Model:
     input_modalities: list[ModelInputModality] = ['text']
     if 'image' in data.get('architecture', {}).get('modality', ''):
         input_modalities.append('image')
@@ -91,24 +108,24 @@ def translate_model(data: OpenRouterModelData) -> Model:
         base_url='https://openrouter.ai/api/v1',
         reasoning=('reasoning' in data.get('supported_parameters', ())),
         input=input_modalities,
-        cost=translate_pricing(data.get('pricing')),
+        cost=_translate_pricing(data.get('pricing')),
         context_window=data.get('context_length', FALLBACK_CONTEXT_WINDOW),
         max_tokens=data.get('top_provider', {}).get('max_completion_tokens', FALLBACK_MAX_TOKENS),
     )
 
 
-def translate_pricing(pricing: OpenRouterPricing | None) -> ModelPricing:
+def _translate_pricing(pricing: OpenRouterPricing | None) -> ModelPricing:
     if pricing is None:
         return ModelPricing(input=0, output=0, cache_read=0, cache_write=0)
     return ModelPricing(
-        input=convert_price(pricing.get('prompt')),
-        output=convert_price(pricing.get('completion')),
-        cache_read=convert_price(pricing.get('input_cache_read')),
-        cache_write=convert_price(pricing.get('input_cache_write')),
+        input=_convert_price(pricing.get('prompt')),
+        output=_convert_price(pricing.get('completion')),
+        cache_read=_convert_price(pricing.get('input_cache_read')),
+        cache_write=_convert_price(pricing.get('input_cache_write')),
     )
 
 
-def convert_price(price_str: str | None) -> float:
+def _convert_price(price_str: str | None) -> float:
     if price_str is None:
         return 0
     try:

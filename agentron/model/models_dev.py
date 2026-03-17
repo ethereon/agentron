@@ -100,6 +100,19 @@ class ModelsDevRepo(WebModelRepo[ModelsDevManifest]):
             max_tokens=_coerce_int(limit.get('output') if isinstance(limit, dict) else FALLBACK_MAX_TOKENS),
         )
 
+    def _filter_validated(self, data: ModelsDevManifest) -> ModelsDevManifest:
+        for provider_manifest in data.values():
+            models = provider_manifest.get('models')
+            if models is None:
+                continue
+            provider_manifest['models'] = {
+                # Constrain to models that support tool calls
+                model_name: model_data
+                for model_name, model_data in models.items()
+                if model_data.get('tool_call')
+            }
+        return data
+
 
 def _translate_input_modalities(
     modalities: ModelsDevModalities | object,

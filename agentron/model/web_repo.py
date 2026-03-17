@@ -78,8 +78,8 @@ class WebModelRepo[T]:
 
         data = self._transform_payload(data)
 
-        if not isinstance(data, dict):
-            raise MetadataFetchError(f'Manifest from {self._url} must be a JSON object.')
+        if not isinstance(data, (dict, list)):
+            raise MetadataFetchError(f'Manifest from {self._url} must be a JSON collection.')
 
         if not self.validate(data):
             raise MetadataFetchError(f'Manifest from {self._url} has invalid structure.')
@@ -107,7 +107,7 @@ class WebModelRepo[T]:
         # Hook for subclasses to transform the validated data before caching.
         return data
 
-    def validate(self, data: dict) -> TypeGuard[T]:
+    def validate(self, data: dict | list) -> TypeGuard[T]:
         # Hook for optional subclass validation
         return True
 
