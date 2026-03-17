@@ -93,19 +93,18 @@ export class AssistantMessageView {
         const subviews = this.subviews;
         for (let i = subviews.length; i < content.length; ++i) {
             const newSubview = this.renderSubView(content[i]);
-            subviews.push(newSubview);
-            this.container.appendChild(newSubview.container);
+            this.appendSubView(newSubview);
         }
     }
 
     applyStreamingUpdate(update: StreamingMessage) {
         switch (update.type) {
             case 'text_start':
-                this.subviews.push(new AssistantResponseView(''));
+                this.appendSubView(new AssistantResponseView(''));
                 break;
 
             case 'reasoning_start':
-                this.subviews.push(new ReasoningView(''));
+                this.appendSubView(new ReasoningView(''));
                 break;
 
             case 'text_delta':
@@ -134,6 +133,11 @@ export class AssistantMessageView {
             }
         }
         throw new Error(`No subview found for tool result with call ID ${callId}`);
+    }
+
+    private appendSubView(subView: AssistantSubView) {
+        this.subviews.push(subView);
+        this.container.appendChild(subView.container);
     }
 
     private patchSubView(
