@@ -38,10 +38,12 @@
     overflow: hidden
 
 .at-tool-call-status-icon
-    color: #22c55e
+    color: $colors.tool_call_icon_success
     &.failed
-        color: #ef4444
+        color: $colors.tool_call_icon_failed
 
 .at-tool-call-result
     font-family: $typography.mono_font
     font-size: 0.85rem
+    &.failed
+        color: $colors.tool_call_error_result_fg

@@ -357,6 +357,9 @@ class ToolDetailsView {
             class: style.tool_call_result,
             text: resultText
         });
+        if (!result.success) {
+            this.resultView.classList.add(style.failed);
+        }
         this.tabView?.selectTabAtIndex(1);
     }
 
