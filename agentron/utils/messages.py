@@ -1,9 +1,9 @@
-from typing import Any
-
 import uuid
 import time
 
+from typing import Any
 from agentron.typing import ContentLike, PILImage
+from agentron.path import resolve_external_caller_path
 from agentron.messages import (
     AssistantMessage,
     Content,
@@ -14,6 +14,8 @@ from agentron.messages import (
     ToolResultMessage,
     UserMessage,
 )
+
+FILE_SPECIFIER_PREFIX = 'file:'
 
 
 def as_content(content: ContentLike) -> Content:
@@ -52,8 +54,18 @@ def make_system_message(text: str) -> SystemMessage:
         mtype='system',
         id=new_message_id(),
         timestamp=current_timestamp(),
-        content=as_content(text),
+        content=as_content(resolve_text(text)),
     )
+
+
+def resolve_text(text: str) -> str:
+    if text.startswith(FILE_SPECIFIER_PREFIX):
+        # Get the path of the file relative to the invoking module
+        # (that's outside of the agentron package, e.g. in the user's codebase)
+        parent_dir = resolve_external_caller_path()
+        file_path = parent_dir / text.removeprefix(FILE_SPECIFIER_PREFIX).strip()
+        return file_path.read_text()
+    return text
 
 
 def extract_tool_calls(response: AssistantMessage) -> list[ToolCall]:
