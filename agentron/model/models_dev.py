@@ -46,7 +46,7 @@ class ModelsDevProviderData(TypedDict, total=False):
     models: dict[str, ModelsDevModelData]
 
 
-ModelsDevManifest = dict[str, ModelsDevProviderData]
+type ModelsDevManifest = dict[str, ModelsDevProviderData]
 
 
 class ModelsDevRepo(WebModelRepo[ModelsDevManifest]):
@@ -55,6 +55,9 @@ class ModelsDevRepo(WebModelRepo[ModelsDevManifest]):
             url=MODELS_DEV_URL,
             cache_name='models.dev.json',
         )
+
+    def get_priority(self, provider: str) -> int:
+        return 0
 
     def _find(self, provider: str, model: str) -> Model | None:
         assert self._manifest is not None
@@ -96,6 +99,19 @@ class ModelsDevRepo(WebModelRepo[ModelsDevManifest]):
             context_window=_coerce_int(limit.get('context') if isinstance(limit, dict) else FALLBACK_CONTEXT_WINDOW),
             max_tokens=_coerce_int(limit.get('output') if isinstance(limit, dict) else FALLBACK_MAX_TOKENS),
         )
+
+    def _filter_validated(self, data: ModelsDevManifest) -> ModelsDevManifest:
+        for provider_manifest in data.values():
+            models = provider_manifest.get('models')
+            if models is None:
+                continue
+            provider_manifest['models'] = {
+                # Constrain to models that support tool calls
+                model_name: model_data
+                for model_name, model_data in models.items()
+                if model_data.get('tool_call')
+            }
+        return data
 
 
 def _translate_input_modalities(
