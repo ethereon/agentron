@@ -69,7 +69,9 @@ class OpenRouterRepo(WebModelRepo[OpenRouterModelManifest]):
         assert self._manifest is not None
 
         if provider != 'openrouter':
-            return None
+            # Raise a LookupError rather than return None to prevent the
+            # base class from attempting to scan again using a refreshed manifest.
+            raise LookupError(f'Provider "{provider}" not supported by OpenRouterRepo.')
 
         for model_data in self._manifest:
             if model_data['id'] == model or model_data['canonical_slug'] == model:
