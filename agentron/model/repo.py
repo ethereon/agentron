@@ -1,6 +1,7 @@
 from typing import Protocol
 
 from agentron.model.models_dev import ModelsDevRepo
+from agentron.model.openrouter import OpenRouterRepo
 from agentron.model.types import Model
 
 
@@ -21,7 +22,10 @@ _repos: list[ModelRepo] = []
 def get_repos(provider: str) -> list[ModelRepo]:
     global _repos
     if not _repos:
-        _repos = [ModelsDevRepo()]
+        _repos = [
+            ModelsDevRepo(),
+            OpenRouterRepo(),
+        ]
 
     # Sort repos by priority for the given provider
     return sorted(
