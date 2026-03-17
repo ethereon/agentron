@@ -65,13 +65,12 @@ class OpenRouterRepo(WebModelRepo[OpenRouterModelManifest]):
     def get_priority(self, provider: str) -> int:
         return 10 if provider == 'openrouter' else 0
 
+    def _is_supported_provider(self, provider: str) -> bool:
+        return provider == 'openrouter'
+
     def _find(self, provider: str, model: str) -> Model | None:
         assert self._manifest is not None
-
-        if provider != 'openrouter':
-            # Raise a LookupError rather than return None to prevent the
-            # base class from attempting to scan again using a refreshed manifest.
-            raise LookupError(f'Provider "{provider}" not supported by OpenRouterRepo.')
+        assert provider == 'openrouter'
 
         for model_data in self._manifest:
             if model_data['id'] == model or model_data['canonical_slug'] == model:

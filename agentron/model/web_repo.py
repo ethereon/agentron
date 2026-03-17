@@ -22,6 +22,9 @@ class WebModelRepo[T]:
         self._manifest: T | None = None
 
     def get_model(self, provider: str, model: str) -> Model:
+        if not self._is_supported_provider(provider):
+            raise LookupError(f'Provider "{provider}" not supported by this repository.')
+
         if self._manifest is None:
             self._maybe_load_cached_manifest()
 
@@ -39,6 +42,10 @@ class WebModelRepo[T]:
             raise LookupError(f'Model "{model}" from provider "{provider}" not found.')
 
         return match
+
+    def _is_supported_provider(self, provider: str) -> bool:
+        # May be overriden by subclasses to short-circuit unsupported providers.
+        return True
 
     def _maybe_load_cached_manifest(self) -> bool:
         try:
