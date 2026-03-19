@@ -3,7 +3,7 @@ from typing import Any
 from agentron.typing import ToolSchema
 
 
-class ToolError(RuntimeError): ...
+class ToolValidationError(RuntimeError): ...
 
 
 def _value_type_name(value: Any) -> str:
@@ -148,11 +148,11 @@ def validate_tool_arguments(
     arguments: Any,
 ) -> dict[str, Any]:
     if not isinstance(arguments, dict):
-        raise ToolError(f'Invalid arguments for tool "{schema["name"]}": the arguments object must be an object; got {_value_type_name(arguments)}.')
+        raise ToolValidationError(f'Invalid arguments for tool "{schema["name"]}": the arguments object must be an object; got {_value_type_name(arguments)}.')
 
     issues: list[str] = []
     _collect_schema_issues(arguments, schema['parameters'], '', issues)
     if issues:
-        raise ToolError(f'Invalid arguments for tool "{schema["name"]}": ' + ' '.join(issues))
+        raise ToolValidationError(f'Invalid arguments for tool "{schema["name"]}": ' + ' '.join(issues))
 
     return arguments
