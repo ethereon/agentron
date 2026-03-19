@@ -19,7 +19,7 @@ class ToolManager(Protocol):
         Executes the given tool call and returns the result.
 
         Error handling:
-            Any exception raised during the execution of the tool is marks the tool call as failed,
+            Any exception raised during the execution of the tool marks the tool call as failed
             and the exception message is included in the result sent back to the LLM.
         """
         ...
