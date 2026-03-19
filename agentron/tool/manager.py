@@ -45,12 +45,12 @@ class CoreToolManager(ToolManager):
                 success=True,
                 content=as_content(result),
             )
-        except BaseException as err:
+        except Exception as err:
             return ToolResult(
                 success=False,
                 content=as_content(_format_tool_error(err)),
             )
 
 
-def _format_tool_error(err: BaseException) -> str:
+def _format_tool_error(err: Exception) -> str:
     return f'{type(err).__name__}: {str(err)}'
