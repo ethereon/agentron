@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
+import functools
 import inspect
 import re
 import textwrap
@@ -144,6 +145,9 @@ def _resolve_type(tp: Any) -> dict:
 
 def _callable_name(obj: Callable) -> str:
     """Return a human-friendly name for any callable."""
+    if isinstance(obj, functools.partial):
+        return _callable_name(obj.func)
+
     # Functions, methods, builtins, classes
     if hasattr(obj, '__name__'):
         return obj.__name__
@@ -157,6 +161,42 @@ def _callable_name(obj: Callable) -> str:
         return snake
 
     raise ValueError(f'Failed to get a name for tool function: {obj}')
+
+
+def _unwrap_partial(func: Callable) -> tuple[Callable, tuple[Any, ...], dict[str, Any]]:
+    """Return the wrapped callable plus all arguments bound by nested partials."""
+    partial_args: list[Any] = []
+    partial_kwargs: dict[str, Any] = {}
+
+    while isinstance(func, functools.partial):
+        partial_args = [*func.args, *partial_args]
+        partial_kwargs = {**(func.keywords or {}), **partial_kwargs}
+        func = func.func
+
+    return func, tuple(partial_args), partial_kwargs
+
+
+def _normalize_tool_callable(func: Callable) -> tuple[str, Callable, inspect.Signature, set[str]]:
+    """Normalize plain callables, callable instances, and partials for schema generation."""
+    wrapped_func, partial_args, partial_kwargs = _unwrap_partial(func)
+    func_name = _callable_name(wrapped_func)
+
+    target = wrapped_func
+    if (not inspect.isfunction(target)) and hasattr(target, '__call__'):
+        target = target.__call__
+
+    full_sig = inspect.signature(target)
+    if partial_args or partial_kwargs:
+        try:
+            bound = full_sig.bind_partial(*partial_args, **partial_kwargs)
+        except TypeError as exc:
+            raise ValueError(f"Function '{func_name}' has an invalid partial binding: {exc}") from exc
+        fixed_params = set(bound.arguments.keys())
+    else:
+        fixed_params = set()
+
+    remaining_params = [param for name, param in full_sig.parameters.items() if name not in fixed_params]
+    return func_name, target, full_sig.replace(parameters=remaining_params), set(full_sig.parameters.keys())
 
 
 # ---------------------------------------------------------------------------
@@ -429,6 +469,10 @@ def generate_tool_schema(func: Callable) -> ToolSchema:
     """
     Generate an OpenAI-style tool-call JSON schema for *func*.
 
+    If *func* is a functools.partial instance, the wrapped callable provides the
+    schema name, docstring, and type hints, and any bound arguments are removed
+    from the emitted parameter schema.
+
     Output format:
         {
             "name": "func_name",
@@ -448,12 +492,7 @@ def generate_tool_schema(func: Callable) -> ToolSchema:
         TypeError  -- type annotation issues or unsupported types
         ValueError -- docstring / argument consistency issues
     """
-    func_name = _callable_name(func)
-
-    if (not inspect.isfunction(func)) and hasattr(func, '__call__'):
-        func = func.__call__
-
-    sig = inspect.signature(func)
+    func_name, func, sig, all_param_names = _normalize_tool_callable(func)
     params = sig.parameters
 
     # --- Collect type hints (resolves forward references) ---
@@ -491,7 +530,7 @@ def generate_tool_schema(func: Callable) -> ToolSchema:
     if missing_in_doc:
         raise ValueError(f"Function '{func_name}': the following parameters are not described in the docstring 'Args:' section: {sorted(missing_in_doc)}")
 
-    unknown_in_doc = doc_params - sig_params
+    unknown_in_doc = doc_params - all_param_names
     if unknown_in_doc:
         raise ValueError(f"Function '{func_name}': the docstring 'Args:' section references unknown parameters: {sorted(unknown_in_doc)}")
 

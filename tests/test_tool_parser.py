@@ -12,6 +12,7 @@ from agentron.typing import ToolSchema
 
 import enum
 import dataclasses
+import functools
 import sys
 import unittest
 from typing import Dict, List, Literal, Optional, Union
@@ -1169,6 +1170,60 @@ class TestCallableClasses(unittest.TestCase):
         with self.assertRaises(TypeError) as ctx:
             generate_tool_schema(MissingAnnotationTool())
         self.assertIn('missing_annotation_tool', str(ctx.exception))
+
+
+# ---------------------------------------------------------------------------
+# 10. functools.partial callables
+# ---------------------------------------------------------------------------
+
+
+class TestPartialCallables(unittest.TestCase):
+    def test_name_uses_wrapped_function_name(self):
+        schema = generate_tool_schema(functools.partial(search_func, max_results=5))
+        self.assertEqual(schema['name'], 'search_func')
+
+    def test_keyword_bound_parameter_removed_from_schema(self):
+        schema = generate_tool_schema(functools.partial(search_func, max_results=5))
+        self.assertIn('query', _props(schema))
+        self.assertIn('tags', _props(schema))
+        self.assertNotIn('max_results', _props(schema))
+        self.assertCountEqual(_required(schema), ['query'])
+
+    def test_positional_bound_parameter_removed_from_schema(self):
+        def read_data(path: str, mode: Literal['r', 'w'], encoding: Optional[str] = None) -> None:
+            """
+            Read data from disk.
+            Args:
+                path: The file path to read.
+                mode: The file open mode.
+                encoding: Optional text encoding.
+            """
+
+        schema = generate_tool_schema(functools.partial(read_data, '/tmp/input.txt'))
+        self.assertNotIn('path', _props(schema))
+        self.assertIn('mode', _props(schema))
+        self.assertIn('encoding', _props(schema))
+        self.assertCountEqual(_required(schema), ['mode'])
+
+    def test_fixed_args_are_ignored_for_validation(self):
+        def apply_prefix(prefix, value: int) -> None:
+            """
+            Apply a prefix to the value.
+            Args:
+                value: The value to format.
+            """
+
+        schema = generate_tool_schema(functools.partial(apply_prefix, 'item-'))
+        self.assertEqual(schema['name'], 'apply_prefix')
+        self.assertEqual(_props(schema)['value']['type'], 'integer')
+        self.assertCountEqual(_required(schema), ['value'])
+
+    def test_partial_callable_instance_uses_wrapped_call(self):
+        schema = generate_tool_schema(functools.partial(SearchTool(), max_results=10))
+        self.assertEqual(schema['name'], 'search_tool')
+        self.assertIn('query', _props(schema))
+        self.assertNotIn('max_results', _props(schema))
+        self.assertCountEqual(_required(schema), ['query'])
 
 
 if __name__ == '__main__':
