@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from agentron.tool.kit.repl import RunInPythonREPL
-from agentron.tool.validation import ToolError
+from agentron.tool.kit.repl import RunInPythonREPL, REPLExecutionError
 
 
 class TestRunInPythonREPL(unittest.TestCase):
@@ -17,7 +16,7 @@ class TestRunInPythonREPL(unittest.TestCase):
     def test_runtime_errors_raise_tool_error_with_traceback_message(self):
         repl = RunInPythonREPL()
 
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(REPLExecutionError) as ctx:
             repl('print("before")\n1 / 0')
 
         message = str(ctx.exception)
@@ -29,7 +28,7 @@ class TestRunInPythonREPL(unittest.TestCase):
     def test_syntax_errors_raise_tool_error_with_traceback_message(self):
         repl = RunInPythonREPL()
 
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(REPLExecutionError) as ctx:
             repl('def broken(')
 
         message = str(ctx.exception)
@@ -40,7 +39,7 @@ class TestRunInPythonREPL(unittest.TestCase):
     def test_compile_errors_raise_tool_error_with_traceback_message(self):
         repl = RunInPythonREPL()
 
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(REPLExecutionError) as ctx:
             repl('return 1')
 
         message = str(ctx.exception)

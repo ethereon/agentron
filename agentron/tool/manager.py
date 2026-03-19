@@ -5,7 +5,7 @@ from agentron.messages import ToolCall, ToolResult
 from agentron.utils.messages import as_content
 from agentron.utils.asyn import maybe_await
 from agentron.tool.parser import generate_tool_schema
-from agentron.tool.validation import ToolError, validate_tool_arguments
+from agentron.tool.validation import validate_tool_arguments
 
 
 class ToolManager(Protocol):
@@ -19,11 +19,8 @@ class ToolManager(Protocol):
         Executes the given tool call and returns the result.
 
         Error handling:
-            May raise a ToolError if the invocation is deemed invalid.
-            The ToolError message is intended to be propagated back to the LLM.
-            All other exception types are considered internal errors, and their
-            details are not transmitted back to the LLM (but available in the
-            ToolResult.internal_error field for introspection).
+            Any exception raised during the execution of the tool marks the tool call as failed
+            and the exception message is included in the result sent back to the LLM.
         """
         ...
 
@@ -38,7 +35,7 @@ class CoreToolManager(ToolManager):
         try:
             tool = self.tools_by_name.get(tool_call['name'])
             if not tool:
-                raise ToolError(f'No tool named {tool_call["name"]} found.')
+                raise ValueError(f'No tool named {tool_call["name"]} found.')
 
             tool_schema = self.schema_by_name[tool_call['name']]
             tool_kwargs = validate_tool_arguments(tool_schema, tool_call['arguments'])
@@ -48,8 +45,12 @@ class CoreToolManager(ToolManager):
                 success=True,
                 content=as_content(result),
             )
-        except ToolError as err:
+        except Exception as err:
             return ToolResult(
                 success=False,
-                content=as_content(f'Error: {str(err)}'),
+                content=as_content(_format_tool_error(err)),
             )
+
+
+def _format_tool_error(err: Exception) -> str:
+    return f'{type(err).__name__}: {str(err)}'

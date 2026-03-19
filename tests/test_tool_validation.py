@@ -7,7 +7,7 @@ from typing import Literal
 from typing_extensions import NotRequired, TypedDict
 
 from agentron.tool.parser import generate_tool_schema
-from agentron.tool.validation import ToolError, validate_tool_arguments
+from agentron.tool.validation import ToolValidationError, validate_tool_arguments
 
 
 class SearchOptions(TypedDict):
@@ -180,7 +180,7 @@ class TestValidateToolArguments(unittest.TestCase):
         self.assertIs(validated_arguments, arguments)
 
     def test_requires_the_top_level_arguments_object(self):
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(ToolValidationError) as ctx:
             validate_tool_arguments(self.search_schema, ['orbit'])
 
         self.assertEqual(
@@ -189,7 +189,7 @@ class TestValidateToolArguments(unittest.TestCase):
         )
 
     def test_reports_missing_and_unexpected_arguments(self):
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(ToolValidationError) as ctx:
             validate_tool_arguments(self.search_schema, {'limit': 3, 'extra': True})
 
         message = str(ctx.exception)
@@ -198,7 +198,7 @@ class TestValidateToolArguments(unittest.TestCase):
         self.assertIn('Unexpected argument "extra".', message)
 
     def test_reports_nested_missing_and_unexpected_arguments(self):
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(ToolValidationError) as ctx:
             validate_tool_arguments(
                 self.search_schema,
                 {
@@ -215,7 +215,7 @@ class TestValidateToolArguments(unittest.TestCase):
         self.assertIn('Unexpected argument "options.extra".', message)
 
     def test_reports_nested_type_errors(self):
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(ToolValidationError) as ctx:
             validate_tool_arguments(
                 self.search_schema,
                 {
@@ -233,7 +233,7 @@ class TestValidateToolArguments(unittest.TestCase):
         self.assertIn('"options.verbose" must be boolean; got string.', message)
 
     def test_reports_array_item_paths(self):
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(ToolValidationError) as ctx:
             validate_tool_arguments(
                 self.batch_schema,
                 {
@@ -275,7 +275,7 @@ class TestValidateToolArguments(unittest.TestCase):
             """
             return 'foo'
 
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(ToolValidationError) as ctx:
             validate_tool_arguments(
                 generate_tool_schema(nullary),
                 {'unexpected': 1},
@@ -291,19 +291,19 @@ class TestValidateToolArguments(unittest.TestCase):
         self.assertIs(validated_arguments, arguments)
 
     def test_reports_invalid_additional_properties_values(self):
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(ToolValidationError) as ctx:
             validate_tool_arguments(self.mapping_schema, {'weights': {'alpha': 'heavy'}})
 
         self.assertIn('"weights.alpha" must be integer; got string.', str(ctx.exception))
 
     def test_reports_non_string_additional_properties_keys(self):
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(ToolValidationError) as ctx:
             validate_tool_arguments(self.mapping_schema, {'weights': {1: 2}})
 
         self.assertIn('"weights" must use string keys; got key 1.', str(ctx.exception))
 
     def test_reports_invalid_enum_value(self):
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(ToolValidationError) as ctx:
             validate_tool_arguments(self.mode_schema, {'mode': 'turbo'})
 
         message = str(ctx.exception)
@@ -317,13 +317,13 @@ class TestValidateToolArguments(unittest.TestCase):
         validate_tool_arguments(self.union_schema, {'payload': ['alpha', 'beta']})
 
     def test_reports_anyof_union_mismatch(self):
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(ToolValidationError) as ctx:
             validate_tool_arguments(self.union_schema, {'payload': 'alpha'})
 
         self.assertIn('"payload" must be object or array; got string.', str(ctx.exception))
 
     def test_optional_parameters_must_be_omitted_instead_of_null(self):
-        with self.assertRaises(ToolError) as ctx:
+        with self.assertRaises(ToolValidationError) as ctx:
             validate_tool_arguments(self.search_schema, {'query': 'orbit', 'options': None})
 
         self.assertIn('"options" must be object; got null.', str(ctx.exception))
