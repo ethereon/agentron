@@ -5,7 +5,43 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from agentron.tool.kit.io import patch_file
+from agentron.tool.kit.io import patch_file, read_file
+
+
+class ReadFileTests(unittest.TestCase):
+    def test_read_file_applies_offset_and_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / 'source.txt'
+            source.write_text('alpha\nbeta\ngamma\ndelta\n')
+
+            self.assertEqual(
+                read_file(str(source), offset=1, limit=2),
+                'beta\ngamma\n',
+            )
+
+    def test_read_file_prefix_line_numbers_respects_offset_and_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / 'source.txt'
+            source.write_text('alpha\nbeta\ngamma\ndelta\n')
+
+            self.assertEqual(
+                read_file(str(source), prefix_line_numbers=True, offset=1, limit=2),
+                '2: beta\n3: gamma',
+            )
+
+    def test_read_file_rejects_negative_offset_and_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / 'source.txt'
+            source.write_text('alpha\nbeta\n')
+
+            with self.assertRaisesRegex(ValueError, 'offset must be non-negative'):
+                read_file(str(source), offset=-1)
+
+            with self.assertRaisesRegex(ValueError, 'limit must be non-negative'):
+                read_file(str(source), limit=-1)
 
 
 class PatchFileTests(unittest.TestCase):

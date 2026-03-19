@@ -5,7 +5,12 @@ from pathlib import Path
 _UNIFIED_HUNK_HEADER = re.compile(r'^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@')
 
 
-def read_file(path: str, prefix_line_numbers: bool = False) -> str:
+def read_file(
+    path: str,
+    prefix_line_numbers: bool = False,
+    offset: int = 0,
+    limit: int | None = None,
+) -> str:
     """
     Reads the content of a file at the given path and returns it as a string.
 
@@ -14,19 +19,36 @@ def read_file(path: str, prefix_line_numbers: bool = False) -> str:
 
         prefix_line_numbers: If True, each line in the returned content will be prefixed
                              with its line number (e.g., "1: ...").
+
+        offset: The zero-based line offset to start reading from.
+
+        limit: The maximum number of lines to read. If None, reads through the end
+               of the file.
     """
+    if offset < 0:
+        raise ValueError('offset must be non-negative')
+    if limit is not None and limit < 0:
+        raise ValueError('limit must be non-negative')
+
     _path = Path(path)
     if not _path.is_file():
         raise FileNotFoundError(f'File not found: {path}')
 
     content = _path.read_text()
+    end = None if limit is None else offset + limit
+
     if prefix_line_numbers:
-        content = '\n'.join(
+        lines = content.splitlines()[offset:end]
+        return '\n'.join(
             # Inject line numbers like "1: ..."
-            f'{i + 1}: {line}'
-            for i, line in enumerate(content.splitlines())
+            f'{offset + i + 1}: {line}'
+            for i, line in enumerate(lines)
         )
-    return content
+
+    if offset == 0 and limit is None:
+        return content
+
+    return ''.join(content.splitlines(keepends=True)[offset:end])
 
 
 def patch_file(patch: str, source_path: str, destination_path: str | None = None) -> str:
