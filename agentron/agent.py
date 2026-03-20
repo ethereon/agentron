@@ -23,12 +23,14 @@ class Agent:
         self,
         session_id: str | None = None,
         messages: Iterable[AgentMessage] | None = None,
+        metadata: dict | None = None,
     ):
         self.session_id = session_id or uuid.uuid4().hex
         self.messages: list[AgentMessage] = list(messages) if messages else []
         self.tool_manager: ToolManager | None = None
         self.backend: LLMBackend | None = None
         self.is_finalized = False
+        self.metadata = metadata or {}
 
         self.on_transmit = Publisher[None]()
         self.on_new_message = Publisher[AgentMessage]()

@@ -1,14 +1,25 @@
 from __future__ import annotations
 
 import json
+import time
 
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, TypedDict
 from pathlib import Path
+
 
 if TYPE_CHECKING:
     from agentron.agent import Agent
     from agentron.messages import AgentMessage
     from agentron.utils.publisher import Subscription
+
+_CURRENT_SERIALIZATION_VERSION = 1
+
+
+class SessionHeader(TypedDict):
+    version: int
+    session_id: str
+    created: int
+    metadata: dict
 
 
 class MessageWriter:
@@ -16,6 +27,7 @@ class MessageWriter:
         self.path = path
         self._file = path.open('a', encoding='utf-8')
         self._closed = False
+        self._target_was_empty = self.path.stat().st_size == 0
         self._ensure_trailing_newline()
 
     def _ensure_trailing_newline(self) -> None:
@@ -31,13 +43,21 @@ class MessageWriter:
         self._file.write('\n')
         self._file.flush()
 
+    def maybe_write_header(self, *, session_id: str, metadata: dict) -> None:
+        if not self._target_was_empty:
+            return
+        header = SessionHeader(
+            version=_CURRENT_SERIALIZATION_VERSION,
+            session_id=session_id,
+            created=int(time.time() * 1000),
+            metadata=metadata,
+        )
+        self._write_line(header)
+
     def write_message(self, message: AgentMessage) -> None:
         if self._closed:
             return
-
-        self._file.write(json.dumps(message, separators=(',', ':')))
-        self._file.write('\n')
-        self._file.flush()
+        self._write_line(message)
 
     def write_messages(self, messages: Iterable[AgentMessage]) -> None:
         for message in messages:
@@ -56,9 +76,25 @@ class MessageWriter:
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
         self.close()
 
+    def _write_line(self, data) -> None:
+        self._file.write(json.dumps(data, separators=(',', ':')))
+        self._file.write('\n')
+        self._file.flush()
 
-def write_messages(messages: Iterable[AgentMessage], path: Path) -> None:
+
+def write_messages(
+    messages: Iterable[AgentMessage],
+    path: Path,
+    *,
+    session_id: str | None = None,
+    metadata: dict | None = None,
+) -> None:
     with MessageWriter(path) as writer:
+        if session_id is not None:
+            writer.maybe_write_header(
+                session_id=session_id,
+                metadata=metadata if metadata is not None else {},
+            )
         writer.write_messages(messages)
 
 
@@ -102,7 +138,10 @@ def auto_write_messages(agent: Agent, path: Path) -> Subscription:
     try:
         new_message_subscription = agent.on_new_message.subscribe(write_message)
         finalize_subscription = agent.on_finalize.subscribe(on_finalize)
-
+        writer.maybe_write_header(
+            session_id=agent.session_id,
+            metadata=agent.metadata,
+        )
         for message in list(agent.messages):
             write_message(message)
     except Exception:

@@ -37,6 +37,50 @@ class WriteMessagesTests(unittest.TestCase):
             self.assertEqual(lines[0], '{"existing":true}')
             self.assertEqual(json.loads(lines[1]), message)
 
+    def test_write_messages_writes_header_for_empty_file_when_session_details_are_provided(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            destination = Path(temp_dir) / 'messages.jsonl'
+            message = make_user_message('alpha')
+
+            with patch('agentron.serialization.time.time', return_value=123.456):
+                write_messages(
+                    [message],
+                    destination,
+                    session_id='session-123',
+                    metadata={'source': 'test'},
+                )
+
+            lines = destination.read_text().splitlines()
+            self.assertEqual(
+                json.loads(lines[0]),
+                {
+                    'version': 1,
+                    'session_id': 'session-123',
+                    'created': 123456,
+                    'metadata': {'source': 'test'},
+                },
+            )
+            self.assertEqual(json.loads(lines[1]), message)
+
+    def test_write_messages_does_not_write_header_when_appending_to_existing_jsonl(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            destination = Path(temp_dir) / 'messages.jsonl'
+            destination.write_text('{"existing":true}\n')
+            message = make_user_message('alpha')
+
+            with patch('agentron.serialization.time.time', return_value=123.456):
+                write_messages(
+                    [message],
+                    destination,
+                    session_id='session-123',
+                    metadata={'source': 'test'},
+                )
+
+            lines = destination.read_text().splitlines()
+            self.assertEqual(lines[0], '{"existing":true}')
+            self.assertEqual(json.loads(lines[1]), message)
+            self.assertEqual(len(lines), 2)
+
     def test_write_messages_does_not_insert_blank_line_for_empty_file(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             destination = Path(temp_dir) / 'messages.jsonl'
@@ -96,13 +140,28 @@ class AutoWriteMessagesTests(unittest.TestCase):
     def test_auto_write_messages_uses_session_file_when_given_directory(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             destination_dir = Path(temp_dir)
-            agent = Agent(session_id='session-123', messages=[make_user_message('alpha')])
+            agent = Agent(
+                session_id='session-123',
+                messages=[make_user_message('alpha')],
+                metadata={'source': 'test'},
+            )
 
-            auto_write_messages(agent, destination_dir)
+            with patch('agentron.serialization.time.time', return_value=123.456):
+                auto_write_messages(agent, destination_dir)
 
             session_file = destination_dir / 'session-123.jsonl'
             self.assertTrue(session_file.exists())
-            self.assertEqual(json.loads(session_file.read_text().splitlines()[0]), agent.messages[0])
+            lines = session_file.read_text().splitlines()
+            self.assertEqual(
+                json.loads(lines[0]),
+                {
+                    'version': 1,
+                    'session_id': 'session-123',
+                    'created': 123456,
+                    'metadata': {'source': 'test'},
+                },
+            )
+            self.assertEqual(json.loads(lines[1]), agent.messages[0])
 
             agent.finalize()
 
@@ -113,7 +172,13 @@ class AutoWriteMessagesTests(unittest.TestCase):
             tracking_file = _TrackingFile(wrapped_file)
             agent = Agent()
 
-            with patch('agentron.serialization.Path.open', return_value=tracking_file):
+            with (
+                patch('agentron.serialization.Path.open', return_value=tracking_file),
+                patch(
+                    'agentron.serialization.time.time',
+                    return_value=123.456,
+                ),
+            ):
                 auto_write_messages(agent, destination)
 
                 self.assertFalse(tracking_file.closed)
@@ -125,4 +190,14 @@ class AutoWriteMessagesTests(unittest.TestCase):
 
                 agent._push_message(make_user_message('ignored'))
 
-            self.assertEqual(destination.read_text(), '')
+            lines = destination.read_text().splitlines()
+            self.assertEqual(
+                json.loads(lines[0]),
+                {
+                    'version': 1,
+                    'session_id': agent.session_id,
+                    'created': 123456,
+                    'metadata': {},
+                },
+            )
+            self.assertEqual(len(lines), 1)
