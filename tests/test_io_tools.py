@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from agentron.tool.kit.io import patch_file, read_file, write_file
+from agentron.tool.kit.io import list_dir, patch_file, read_file, write_file
 
 
 class WriteFileTests(unittest.TestCase):
@@ -59,6 +59,20 @@ class ReadFileTests(unittest.TestCase):
 
             with self.assertRaisesRegex(ValueError, 'limit must be non-negative'):
                 read_file(str(source), limit=-1)
+
+
+class ListDirTests(unittest.TestCase):
+    def test_list_dir_returns_sorted_children_and_suffixes_directories(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / 'beta.txt').write_text('beta\n')
+            (root / 'alpha').mkdir()
+            (root / 'aardvark.txt').write_text('alpha\n')
+
+            self.assertEqual(
+                list_dir(str(root)),
+                'aardvark.txt\nalpha/\nbeta.txt',
+            )
 
 
 class PatchFileTests(unittest.TestCase):

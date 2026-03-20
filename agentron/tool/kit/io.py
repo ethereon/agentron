@@ -51,6 +51,28 @@ def read_file(
     return ''.join(content.splitlines(keepends=True)[offset:end])
 
 
+def list_dir(path: str) -> str:
+    """
+    Lists the contents of a directory.
+
+    Args:
+        path: The absolute path to the directory to list.
+    """
+    directory = Path(path)
+    if not directory.exists():
+        raise FileNotFoundError(f'Directory not found: {path}')
+    if not directory.is_dir():
+        raise NotADirectoryError(f'Not a directory: {path}')
+
+    return '\n'.join(
+        sorted(
+            # Append a "/" suffix to directories to distinguish them from files.
+            f'{entry.name}/' if entry.is_dir() else entry.name
+            for entry in directory.iterdir()
+        )
+    )
+
+
 def write_file(path: str, content: str) -> str:
     """
     Writes text content to the file at the given path.
