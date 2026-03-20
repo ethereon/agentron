@@ -7,9 +7,7 @@ function isTextContent(obj: any): boolean {
         obj != null &&
         obj.type === 'text' &&
         typeof obj.text === 'string' &&
-        (obj.text_signature == null ||
-            obj.text_signature == null ||
-            typeof obj.text_signature === 'string')
+        (obj.text_signature == null || typeof obj.text_signature === 'string')
     );
 }
 
@@ -38,8 +36,8 @@ function isReasoning(obj: any): boolean {
         obj != null &&
         obj.type === 'reasoning' &&
         typeof obj.text === 'string' &&
-        (obj.signature == null || obj.signature == null || typeof obj.signature === 'string') &&
-        (obj.redacted == null || typeof obj.redacted === 'boolean' || obj.redacted == null)
+        (obj.signature == null || typeof obj.signature === 'string') &&
+        (typeof obj.redacted === 'boolean' || obj.redacted == null)
     );
 }
 
@@ -53,9 +51,7 @@ function isToolCall(obj: any): boolean {
         typeof obj.arguments === 'object' &&
         !Array.isArray(obj.arguments) &&
         Object.values(obj.arguments).every((value: any) => value != null) &&
-        (obj.thought_signature == null ||
-            obj.thought_signature == null ||
-            typeof obj.thought_signature === 'string')
+        (obj.thought_signature == null || typeof obj.thought_signature === 'string')
     );
 }
 
@@ -122,13 +118,12 @@ function isAssistantMessage(obj: any): boolean {
         isModelInfo(obj.model) &&
         isTokenUsage(obj.token_usage) &&
         (obj.finish_reason == null ||
-            obj.finish_reason == null ||
             obj.finish_reason === 'stop' ||
             obj.finish_reason === 'length' ||
             obj.finish_reason === 'tool_use' ||
             obj.finish_reason === 'error' ||
             obj.finish_reason === 'aborted') &&
-        (obj.error == null || obj.error == null || isAssistantMessageError(obj.error))
+        (obj.error == null || isAssistantMessageError(obj.error))
     );
 }
 
@@ -137,9 +132,7 @@ function isToolResult(obj: any): boolean {
         obj != null &&
         typeof obj.success === 'boolean' &&
         isTextContent(obj.content) &&
-        (obj.internal_error == null ||
-            obj.internal_error == null ||
-            typeof obj.internal_error === 'string')
+        (obj.internal_error == null || typeof obj.internal_error === 'string')
     );
 }
 

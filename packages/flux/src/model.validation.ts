@@ -36,13 +36,11 @@ export function isModel(obj: any): obj is Model {
         typeof obj.context_window === 'number' &&
         typeof obj.max_tokens === 'number' &&
         (obj.headers == null ||
-            obj.headers == null ||
             (obj.headers != null &&
                 typeof obj.headers === 'object' &&
                 !Array.isArray(obj.headers) &&
                 Object.values(obj.headers).every((value: any) => typeof value === 'string'))) &&
         (obj.auth_env_vars == null ||
-            obj.auth_env_vars == null ||
             (Array.isArray(obj.auth_env_vars) &&
                 obj.auth_env_vars.every((item: any) => typeof item === 'string')))
     );
