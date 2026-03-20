@@ -35,4 +35,5 @@ export interface Model {
     context_window: number;
     max_tokens: number;
     headers?: Record<string, string>;
+    auth_env_vars?: string[];
 }

@@ -98,6 +98,7 @@ class ModelsDevRepo(WebModelRepo[ModelsDevManifest]):
             cost=_translate_cost(data.get('cost')),
             context_window=_coerce_int(limit.get('context') if isinstance(limit, dict) else FALLBACK_CONTEXT_WINDOW),
             max_tokens=_coerce_int(limit.get('output') if isinstance(limit, dict) else FALLBACK_MAX_TOKENS),
+            auth_env_vars=provider_data.get('env', []),
         )
 
     def _filter_validated(self, data: ModelsDevManifest) -> ModelsDevManifest:

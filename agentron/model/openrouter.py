@@ -114,6 +114,7 @@ def _translate_model(data: OpenRouterModelData) -> Model:
         cost=_translate_pricing(data.get('pricing')),
         context_window=data.get('context_length', FALLBACK_CONTEXT_WINDOW),
         max_tokens=data.get('top_provider', {}).get('max_completion_tokens', FALLBACK_MAX_TOKENS),
+        auth_env_vars=['OPENROUTER_API_KEY'],
     )
 
 

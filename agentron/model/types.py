@@ -47,3 +47,4 @@ class Model(TypedDict):
     context_window: int
     max_tokens: int
     headers: NotRequired[dict[str, str]]
+    auth_env_vars: NotRequired[list[str]]
