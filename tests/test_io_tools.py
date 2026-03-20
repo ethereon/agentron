@@ -5,7 +5,24 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from agentron.tool.kit.io import patch_file, read_file
+from agentron.tool.kit.io import patch_file, read_file, write_file
+
+
+class WriteFileTests(unittest.TestCase):
+    def test_write_file_writes_to_existing_directory_and_does_not_create_missing_one(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            destination = root / 'output.txt'
+
+            self.assertEqual(
+                write_file(str(destination), 'alpha\nbeta\n'),
+                'File successfully written.',
+            )
+            self.assertEqual(destination.read_text(), 'alpha\nbeta\n')
+
+            missing_destination = root / 'nested' / 'output.txt'
+            with self.assertRaises(FileNotFoundError):
+                write_file(str(missing_destination), 'gamma\n')
 
 
 class ReadFileTests(unittest.TestCase):

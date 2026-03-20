@@ -51,6 +51,22 @@ def read_file(
     return ''.join(content.splitlines(keepends=True)[offset:end])
 
 
+def write_file(path: str, content: str) -> str:
+    """
+    Writes text content to the file at the given path.
+
+    Args:
+        path: The absolute path to the file to write. The parent directory
+              must already exist.
+
+        content: The text content to write to the file.
+    """
+    destination = Path(path)
+    destination.write_text(content)
+
+    return 'File successfully written.'
+
+
 def patch_file(patch: str, source_path: str, destination_path: str | None = None) -> str:
     """
     Applies a patch to a source file and writes the patched content to a destination.
