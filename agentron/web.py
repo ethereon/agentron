@@ -5,17 +5,50 @@ import mimetypes
 import queue
 import threading
 import webbrowser
+import logging
 
+from typing import Any, Protocol
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any
 from urllib.parse import parse_qs, unquote, urlparse
 
 from agentron.agent import Agent
+from agentron.messages import AgentMessage
 from agentron.utils.publisher import SubscriptionStore
 from agentron.path import get_webui_root
+from agentron.serialization import read_session_data
+
+log = logging.getLogger(__name__)
 
 _SENTINEL = object()  # Placed in a client queue to signal disconnection
+
+
+class SessionSource(Protocol):
+    @property
+    def messages(self) -> list[AgentMessage]: ...
+
+    metadata: dict[str, Any]
+
+    session_id: str
+
+
+class SerializedSessionSource(SessionSource):
+    def __init__(self, path: Path):
+        data = read_session_data(path, header_only=True)
+        self.metadata = data.header['metadata']
+        self.session_id = data.header['session_id']
+        self.path = path
+        self._messages: list[AgentMessage] | None = None
+        self._is_pending_load = True
+
+    @property
+    def messages(self) -> list[AgentMessage]:
+        if self._is_pending_load:
+            data = read_session_data(self.path)
+            self._messages = data.messages
+            self._is_pending_load = False
+        assert self._messages is not None
+        return self._messages
 
 
 class WebServer:
@@ -41,8 +74,8 @@ class WebServer:
         self._lock = threading.Lock()
         # Maps session_id -> list of per-client queues
         self._clients: dict[str, list[queue.Queue]] = {}
-        # Maps session_id -> Agent (for history endpoints)
-        self._sessions: dict[str, Agent] = {}
+        # Maps session_id -> SessionSource (for history endpoints)
+        self._sessions: dict[str, SessionSource] = {}
         # Maps session_id -> SubscriptionStore (holds Publisher unsubscribers)
         self._subscriptions: dict[str, SubscriptionStore] = {}
         self._server: ThreadingHTTPServer | None = None
@@ -60,9 +93,8 @@ class WebServer:
                 agent.on_new_message.subscribe(lambda msg: self._broadcast(session_id, 'new_message', msg)),
                 agent.on_streaming_message.subscribe(lambda msg: self._broadcast(session_id, 'streaming_message', msg)),
             )
-            self._sessions[session_id] = agent
             self._subscriptions[session_id] = store
-            self._clients[session_id] = []
+            self._add_session_source(agent)
 
     def unregister_agent(self, agent: Agent) -> None:
         """Unsubscribe from *agent* and terminate any active SSE connections for it."""
@@ -76,6 +108,22 @@ class WebServer:
             store.clear()
         for q in clients:
             q.put(_SENTINEL)
+
+    def load_sessions(self, path: Path) -> None:
+        with self._lock:
+            sources: list[Path] = []
+            if path.is_dir():
+                for file in path.iterdir():
+                    if file.is_file() and file.suffix == '.jsonl':
+                        sources.append(file)
+            elif path.is_file():
+                sources.append(path)
+
+            for source in sources:
+                try:
+                    self._add_session_source(SerializedSessionSource(path=source))
+                except Exception as e:
+                    log.warning(f'Failed to load session from {source}: {e}')
 
     def start(self, *, open_browser: bool = False) -> None:
         """Start the HTTP server on a daemon background thread."""
@@ -108,6 +156,13 @@ class WebServer:
             self._thread.join()
             self._thread = None
 
+    def _add_session_source(self, source: SessionSource) -> None:
+        session_id = source.session_id
+        if session_id in self._sessions:
+            raise ValueError(f'Session with ID {session_id} is already registered.')
+        self._sessions[session_id] = source
+        self._clients[session_id] = []
+
     def _broadcast(self, session_id: str, event: str, data: Any) -> None:
         """Serialize *data* and enqueue the event for all SSE clients of *session_id*."""
         payload = json.dumps(data)
@@ -138,7 +193,7 @@ class WebServer:
         with self._lock:
             return list(self._clients)
 
-    def _get_agent(self, session_id: str) -> Agent | None:
+    def _get_source(self, session_id: str) -> SessionSource | None:
         with self._lock:
             return self._sessions.get(session_id)
 
@@ -209,11 +264,11 @@ def _make_handler(server: WebServer):
                 return None
             return ids[0]
 
-        def _require_agent(self, parsed) -> Agent | None:
+        def _require_source(self, parsed) -> SessionSource | None:
             session_id = self._require_session_id(parsed)
             if session_id is None:
                 return None
-            agent = server._get_agent(session_id)
+            agent = server._get_source(session_id)
             if agent is None:
                 self.send_error(404, f'Unknown session: {session_id}')
                 return None
@@ -260,11 +315,11 @@ def _make_handler(server: WebServer):
                 server._remove_client(session_id, q)
 
         def _handle_messages(self, parsed) -> None:
-            agent = self._require_agent(parsed)
-            if agent is None:
+            source = self._require_source(parsed)
+            if source is None:
                 return
 
-            body = json.dumps(agent.messages).encode()
+            body = json.dumps(source.messages).encode()
             self._send_response_headers(
                 200,
                 {
@@ -293,3 +348,22 @@ def _make_handler(server: WebServer):
             self.wfile.write(body)
 
     return _Handler
+
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+
+    args = ArgumentParser(description='Start the Agentron web server to visualize agent sessions.')
+    args.add_argument(
+        'session_path',
+        type=Path,
+        nargs='+',
+        default=None,
+        help='Path to a session JSONL file or directory to load on startup.',
+    )
+    server = WebServer()
+    for path in args.parse_args().session_path:
+        server.load_sessions(path)
+    print(f'Loaded {len(server._sessions)} session(s).')
+    server.start(open_browser=True)
+    server.join()

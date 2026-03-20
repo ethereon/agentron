@@ -159,7 +159,7 @@ def auto_write_messages(agent: Agent, path: Path) -> Subscription:
     return close
 
 
-def read_session_data(path: Path) -> SessionData:
+def read_session_data(path: Path, *, header_only=False) -> SessionData:
     with path.open('r', encoding='utf-8') as file:
         header_line = file.readline()
         if not header_line:
@@ -177,6 +177,9 @@ def read_session_data(path: Path) -> SessionData:
             header = SessionHeader(**header_data)
         except TypeError as e:
             raise ValueError('Session header is missing required fields.') from e
+
+        if header_only:
+            return SessionData(header=header, messages=[])
 
         messages = []
         for line in file:
