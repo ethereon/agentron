@@ -129,3 +129,12 @@ class Agent:
     def _push_message(self, message: AgentMessage):
         self.messages.append(message)
         self.on_new_message.publish(message)
+
+    def __enter__(self):
+        if self.is_finalized:
+            raise RuntimeError('This agent has already been finalized.')
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.finalize()
+        return False
