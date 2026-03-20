@@ -1,4 +1,4 @@
-from typing import Literal
+from pathlib import Path
 
 from agentron.model.types import Model
 from agentron.rpc.flux import FluxBackend
@@ -7,16 +7,17 @@ from agentron.agent import Agent
 from agentron.tool.manager import CoreToolManager
 from agentron.model.auth import resolve_api_key
 from agentron.utils.messages import make_system_message
-
-type Output = Literal['text']
+from agentron.serialization import auto_write_messages
 
 
 def make_agent(
+    *,
     system_prompt: str,
     tools: list[ToolFunction],
     model: Model,
     api_key: str | None = None,
-    output: Output | None = None,
+    output: Path | str | None = None,
+    title: str | None = None,
 ):
     agent = Agent(
         messages=[make_system_message(system_prompt)],
@@ -30,14 +31,13 @@ def make_agent(
             api_key=api_key or resolve_api_key(model),
         )
     )
+
+    if title is not None:
+        agent.metadata['title'] = title
+
+    agent.metadata['model'] = model
+
     if output is not None:
-        setup_agent_output(agent=agent, output=output)
+        auto_write_messages(agent, Path(output))
+
     return agent
-
-
-def setup_agent_output(agent: Agent, output: Output) -> None:
-    match output:
-        case 'text':
-            from agentron.console import ConsoleRenderer
-
-            ConsoleRenderer(agent=agent)
