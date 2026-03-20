@@ -28,17 +28,22 @@ class Agent:
         self.messages: list[AgentMessage] = list(messages) if messages else []
         self.tool_manager: ToolManager | None = None
         self.backend: LLMBackend | None = None
+        self.is_finalized = False
 
         self.on_transmit = Publisher[None]()
         self.on_new_message = Publisher[AgentMessage]()
         self.on_streaming_message = Publisher[StreamingMessage]()
         self.on_tool_call = Publisher[ToolCall]()
+        self.on_finalize = Publisher[None]()
 
     async def ask(
         self,
         prompt: str | Content,
         reasoning: ModelReasoningLevel | None = None,
     ) -> str | None:
+        if self.is_finalized:
+            raise RuntimeError('Cannot ask a finalized agent.')
+
         self._push_message(make_user_message(prompt))
         response = await self._resume(reasoning=reasoning)
         return extract_assistant_text(response)
@@ -48,6 +53,21 @@ class Agent:
 
     def set_tool_manager(self, tool_manager: ToolManager) -> None:
         self.tool_manager = tool_manager
+
+    def finalize(self):
+        if self.is_finalized:
+            return
+
+        self.is_finalized = True
+        self.on_finalize.publish(None)
+
+        Publisher.clear_all(
+            self.on_transmit,
+            self.on_new_message,
+            self.on_streaming_message,
+            self.on_tool_call,
+            self.on_finalize,
+        )
 
     async def _resume(
         self,

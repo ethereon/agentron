@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Callable
 
 type Subscriber[T] = Callable[[T], None]
@@ -19,6 +20,14 @@ class Publisher[T]:
     def publish(self, value: T):
         for callback in self.subscribers:
             callback(value)
+
+    def clear(self):
+        self.subscribers.clear()
+
+    @classmethod
+    def clear_all(cls, *publishers: Publisher):
+        for publisher in publishers:
+            publisher.clear()
 
 
 class SubscriptionStore:
