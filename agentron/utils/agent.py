@@ -8,6 +8,7 @@ from agentron.tool.manager import CoreToolManager
 from agentron.model.auth import resolve_api_key
 from agentron.utils.messages import make_system_message
 from agentron.serialization import auto_write_messages
+from agentron.terminal import TerminalOutput
 
 
 def make_agent(
@@ -18,6 +19,7 @@ def make_agent(
     api_key: str | None = None,
     output: Path | str | None = None,
     title: str | None = None,
+    terminal: bool = False,
 ):
     agent = Agent(
         messages=[make_system_message(system_prompt)],
@@ -39,5 +41,8 @@ def make_agent(
 
     if output is not None:
         auto_write_messages(agent, Path(output))
+
+    if terminal:
+        TerminalOutput(agent)
 
     return agent

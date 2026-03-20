@@ -27,9 +27,9 @@ class Ansi:
     BRIGHT_WHITE_BOLD = '\033[1;97m'
 
 
-class ConsoleRenderer:
+class TerminalOutput:
     """
-    Renders agent activity to a terminal stream.
+    Outputs agent activity to a terminal stream.
     """
 
     def __init__(
