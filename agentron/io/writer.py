@@ -95,6 +95,10 @@ def auto_write_messages(agent: Agent, path: Path) -> Subscription:
     def on_finalize(_: None) -> None:
         close(unsubscribe_finalize=False)
 
+    if agent.is_finalized:
+        close()
+        return lambda: None
+
     try:
         new_message_subscription = agent.on_new_message.subscribe(write_message)
         finalize_subscription = agent.on_finalize.subscribe(on_finalize)
