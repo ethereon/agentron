@@ -91,7 +91,7 @@ class AutoWriteMessagesTests(unittest.TestCase):
             self.assertEqual(json.loads(updated_lines[1]), existing_message)
             self.assertEqual(json.loads(updated_lines[2]), new_message)
 
-            agent.on_finalize.publish(None)
+            agent.finalize()
 
     def test_auto_write_messages_uses_session_file_when_given_directory(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -104,7 +104,7 @@ class AutoWriteMessagesTests(unittest.TestCase):
             self.assertTrue(session_file.exists())
             self.assertEqual(json.loads(session_file.read_text().splitlines()[0]), agent.messages[0])
 
-            agent.on_finalize.publish(None)
+            agent.finalize()
 
     def test_auto_write_messages_closes_on_finalize_and_stops_writing(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -118,7 +118,7 @@ class AutoWriteMessagesTests(unittest.TestCase):
 
                 self.assertFalse(tracking_file.closed)
 
-                agent.on_finalize.publish(None)
+                agent.finalize()
 
                 self.assertTrue(tracking_file.closed)
                 self.assertEqual(tracking_file.close_calls, 1)
