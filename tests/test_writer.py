@@ -25,6 +25,28 @@ class WriteMessagesTests(unittest.TestCase):
             self.assertEqual(json.loads(lines[1]), messages[0])
             self.assertEqual(json.loads(lines[2]), messages[1])
 
+    def test_write_messages_adds_missing_trailing_newline_before_append(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            destination = Path(temp_dir) / 'messages.jsonl'
+            destination.write_text('{"existing":true}')
+            message = make_user_message('alpha')
+
+            write_messages([message], destination)
+
+            lines = destination.read_text().splitlines()
+            self.assertEqual(lines[0], '{"existing":true}')
+            self.assertEqual(json.loads(lines[1]), message)
+
+    def test_write_messages_does_not_insert_blank_line_for_empty_file(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            destination = Path(temp_dir) / 'messages.jsonl'
+            destination.write_text('')
+            message = make_user_message('alpha')
+
+            write_messages([message], destination)
+
+            self.assertEqual(destination.read_text(), json.dumps(message, separators=(',', ':')) + '\n')
+
 
 class _TrackingFile:
     def __init__(self, wrapped):

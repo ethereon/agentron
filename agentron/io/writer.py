@@ -16,6 +16,20 @@ class MessageWriter:
         self.path = path
         self._file = path.open('a', encoding='utf-8')
         self._closed = False
+        self._ensure_trailing_newline()
+
+    def _ensure_trailing_newline(self) -> None:
+        with open(self.path, 'rb') as existing_file:
+            existing_file.seek(0, 2)
+            if existing_file.tell() == 0:
+                return
+
+            existing_file.seek(-1, 2)
+            if existing_file.read(1) == b'\n':
+                return
+
+        self._file.write('\n')
+        self._file.flush()
 
     def write_message(self, message: AgentMessage) -> None:
         if self._closed:
