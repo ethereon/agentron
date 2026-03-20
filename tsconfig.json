@@ -1,0 +1,8 @@
+{
+    "files": [],
+    "references": [
+        { "path": "./packages/ein" },
+        { "path": "./packages/flux" },
+        { "path": "./packages/webui" }
+    ]
+}

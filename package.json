@@ -1,6 +1,9 @@
 {
     "name": "@ethereon/agentron",
     "private": true,
+    "scripts": {
+        "build": "tsc --build && node packages/webui/scripts/build.mjs"
+    },
     "workspaces": [
         "packages/ein",
         "packages/flux",
