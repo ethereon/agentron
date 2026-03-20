@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 
 from agentron.agent import Agent
-from agentron.io.writer import auto_write_messages, write_messages
+from agentron.serialization import auto_write_messages, write_messages
 from agentron.utils.messages import make_user_message
 
 
@@ -113,7 +113,7 @@ class AutoWriteMessagesTests(unittest.TestCase):
             tracking_file = _TrackingFile(wrapped_file)
             agent = Agent()
 
-            with patch('agentron.io.writer.Path.open', return_value=tracking_file):
+            with patch('agentron.serialization.Path.open', return_value=tracking_file):
                 auto_write_messages(agent, destination)
 
                 self.assertFalse(tracking_file.closed)
