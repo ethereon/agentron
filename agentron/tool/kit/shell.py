@@ -6,7 +6,7 @@ class ShellExecutionError(Exception):
     pass
 
 
-def run_bash(command: str, timeout: float | None = None) -> str:
+def bash(command: str, timeout: float | None = None) -> str:
     """
     Execute shell commands or scripts in bash and return the output.
 
