@@ -5,7 +5,7 @@ from typing import NotRequired, TypedDict
 from agentron.model.types import Model, ModelInputModality, ModelPricing
 from agentron.model.web_repo import WebModelRepo, MetadataFetchError
 
-FALLBACK_CONTEXT_WINDOW = 4096
+FALLBACK_CONTEXT_WINDOW = 32000
 FALLBACK_MAX_TOKENS = 4096
 
 
@@ -112,8 +112,10 @@ def _translate_model(data: OpenRouterModelData) -> Model:
         reasoning=('reasoning' in data.get('supported_parameters', ())),
         input=input_modalities,
         cost=_translate_pricing(data.get('pricing')),
-        context_window=data.get('context_length', FALLBACK_CONTEXT_WINDOW),
-        max_tokens=data.get('top_provider', {}).get('max_completion_tokens', FALLBACK_MAX_TOKENS),
+        # OpenRouter can sets these explicitly to null.
+        # Use outer fallback to ensure valid integers.
+        context_window=data.get('context_length') or FALLBACK_CONTEXT_WINDOW,
+        max_tokens=data.get('top_provider', {}).get('max_completion_tokens') or FALLBACK_MAX_TOKENS,
         auth_env_vars=['OPENROUTER_API_KEY'],
     )
 
