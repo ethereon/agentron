@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 import time
 
-from typing import TYPE_CHECKING, Iterable, TypedDict
+from typing import TYPE_CHECKING, Iterable, TypedDict, Literal
 from pathlib import Path
-
+from dataclasses import dataclass
 
 if TYPE_CHECKING:
     from agentron.agent import Agent
@@ -16,10 +16,17 @@ _CURRENT_SERIALIZATION_VERSION = 1
 
 
 class SessionHeader(TypedDict):
+    type: Literal['header']
     version: int
     session_id: str
     created: int
     metadata: dict
+
+
+@dataclass
+class SessionData:
+    header: SessionHeader
+    messages: list[AgentMessage]
 
 
 class MessageWriter:
@@ -47,6 +54,7 @@ class MessageWriter:
         if not self._target_was_empty:
             return
         header = SessionHeader(
+            type='header',
             version=_CURRENT_SERIALIZATION_VERSION,
             session_id=session_id,
             created=int(time.time() * 1000),
@@ -149,3 +157,34 @@ def auto_write_messages(agent: Agent, path: Path) -> Subscription:
         raise
 
     return close
+
+
+def read_session_data(path: Path) -> SessionData:
+    with path.open('r', encoding='utf-8') as file:
+        header_line = file.readline()
+        if not header_line:
+            raise ValueError('Session file is empty.')
+
+        try:
+            header_data = json.loads(header_line)
+        except json.JSONDecodeError as e:
+            raise ValueError('Failed to parse session header as JSON.') from e
+
+        if not isinstance(header_data, dict) or header_data.get('type') != 'header':
+            raise ValueError('First line of session file must be a header object.')
+
+        try:
+            header = SessionHeader(**header_data)
+        except TypeError as e:
+            raise ValueError('Session header is missing required fields.') from e
+
+        messages = []
+        for line in file:
+            if line.strip():
+                try:
+                    message_data = json.loads(line)
+                    messages.append(message_data)
+                except json.JSONDecodeError as e:
+                    raise ValueError('Failed to parse message line as JSON.') from e
+
+    return SessionData(header=header, messages=messages)

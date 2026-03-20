@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 
 from agentron.agent import Agent
-from agentron.serialization import auto_write_messages, write_messages
+from agentron.serialization import auto_write_messages, read_session_data, write_messages
 from agentron.utils.messages import make_user_message
 
 
@@ -54,6 +54,7 @@ class WriteMessagesTests(unittest.TestCase):
             self.assertEqual(
                 json.loads(lines[0]),
                 {
+                    'type': 'header',
                     'version': 1,
                     'session_id': 'session-123',
                     'created': 123456,
@@ -155,6 +156,7 @@ class AutoWriteMessagesTests(unittest.TestCase):
             self.assertEqual(
                 json.loads(lines[0]),
                 {
+                    'type': 'header',
                     'version': 1,
                     'session_id': 'session-123',
                     'created': 123456,
@@ -194,6 +196,7 @@ class AutoWriteMessagesTests(unittest.TestCase):
             self.assertEqual(
                 json.loads(lines[0]),
                 {
+                    'type': 'header',
                     'version': 1,
                     'session_id': agent.session_id,
                     'created': 123456,
@@ -201,3 +204,94 @@ class AutoWriteMessagesTests(unittest.TestCase):
                 },
             )
             self.assertEqual(len(lines), 1)
+
+
+class ReadSessionDataTests(unittest.TestCase):
+    def test_read_session_data_returns_header_and_messages(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            session_file = Path(temp_dir) / 'session.jsonl'
+            message_a = make_user_message('alpha')
+            message_b = make_user_message('beta')
+            session_file.write_text(
+                '\n'.join(
+                    [
+                        json.dumps(
+                            {
+                                'type': 'header',
+                                'version': 1,
+                                'session_id': 'session-123',
+                                'created': 123456,
+                                'metadata': {'source': 'test'},
+                            },
+                            separators=(',', ':'),
+                        ),
+                        json.dumps(message_a, separators=(',', ':')),
+                        '',
+                        json.dumps(message_b, separators=(',', ':')),
+                        '',
+                    ]
+                )
+            )
+
+            session_data = read_session_data(session_file)
+
+            self.assertEqual(
+                session_data.header,
+                {
+                    'type': 'header',
+                    'version': 1,
+                    'session_id': 'session-123',
+                    'created': 123456,
+                    'metadata': {'source': 'test'},
+                },
+            )
+            self.assertEqual(session_data.messages, [message_a, message_b])
+
+    def test_read_session_data_raises_for_empty_file(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            session_file = Path(temp_dir) / 'session.jsonl'
+            session_file.write_text('')
+
+            with self.assertRaisesRegex(ValueError, 'Session file is empty.'):
+                read_session_data(session_file)
+
+    def test_read_session_data_raises_for_invalid_header_json(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            session_file = Path(temp_dir) / 'session.jsonl'
+            session_file.write_text('{"type":"header"\n')
+
+            with self.assertRaisesRegex(ValueError, 'Failed to parse session header as JSON.'):
+                read_session_data(session_file)
+
+    def test_read_session_data_raises_when_first_line_is_not_a_header(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            session_file = Path(temp_dir) / 'session.jsonl'
+            session_file.write_text(json.dumps(make_user_message('alpha'), separators=(',', ':')) + '\n')
+
+            with self.assertRaisesRegex(ValueError, 'First line of session file must be a header object.'):
+                read_session_data(session_file)
+
+    def test_read_session_data_raises_for_invalid_message_json(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            session_file = Path(temp_dir) / 'session.jsonl'
+            session_file.write_text(
+                '\n'.join(
+                    [
+                        json.dumps(
+                            {
+                                'type': 'header',
+                                'version': 1,
+                                'session_id': 'session-123',
+                                'created': 123456,
+                                'metadata': {},
+                            },
+                            separators=(',', ':'),
+                        ),
+                        '{"type":"user","content":',
+                        '',
+                    ]
+                )
+            )
+
+            with self.assertRaisesRegex(ValueError, 'Failed to parse message line as JSON.'):
+                read_session_data(session_file)
