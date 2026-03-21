@@ -28,6 +28,7 @@ def execute(
     command: list[str],
     desc: str,
     timeout: float | None = None,
+    cwd: str | None = None,
 ) -> str:
     if timeout is not None and timeout <= 0:
         raise ValueError('timeout must be positive')
@@ -39,6 +40,7 @@ def execute(
             text=True,
             check=False,
             timeout=timeout,
+            cwd=cwd,
         )
     except subprocess.TimeoutExpired as err:
         partial_output = _normalize_output(err.output)
