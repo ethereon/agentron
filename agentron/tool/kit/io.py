@@ -1,5 +1,10 @@
 import re
+import shlex
+import shutil
+
 from pathlib import Path
+
+from agentron.tool.kit.shell import execute
 
 
 _UNIFIED_HUNK_HEADER = re.compile(r'^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@')
@@ -317,3 +322,27 @@ def _read_unified_hunk_line(lines: list[str], index: int) -> tuple[str, int]:
         index += 1
 
     return line_content, index + 1
+
+
+def grep(args: str, cwd: str | None = None) -> str:
+    """
+    Executes grep and returns its output.
+
+    Args:
+        args: The arguments to pass to grep as a single string.
+
+        cwd: The working directory in which to run grep.
+    """
+    if not args.strip():
+        raise ValueError('args must not be empty')
+
+    grep_path = shutil.which('grep')
+    if grep_path is None:
+        raise RuntimeError('grep executable not found on PATH.')
+
+    return execute(
+        [grep_path, *shlex.split(args)],
+        cwd=cwd,
+        desc='grep command',
+        ok_returncodes=(0, 1),
+    )

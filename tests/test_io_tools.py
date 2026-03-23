@@ -1,11 +1,9 @@
-import sys
 import tempfile
 import unittest
+import pytest
+
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from agentron.tool.kit.io import list_dir, patch_file, read_file, write_file
+from agentron.tool.kit.io import list_dir, patch_file, read_file, write_file, grep
 
 
 class WriteFileTests(unittest.TestCase):
@@ -111,3 +109,35 @@ class PatchFileTests(unittest.TestCase):
 
             self.assertEqual(source.read_text(), 'alpha\nbeta\ngamma\n')
             self.assertEqual(destination.read_text(), 'alpha\ndelta\ngamma\n')
+
+
+def test_grep_returns_matching_lines_with_line_numbers(tmp_path: Path) -> None:
+    sample = tmp_path / 'sample.txt'
+    sample.write_text('alpha\nbeta\nalpha beta\n')
+
+    output = grep(f'-n -- alpha {sample}')
+
+    assert output == '1:alpha\n3:alpha beta'
+
+
+def test_grep_supports_quoted_patterns(tmp_path: Path) -> None:
+    sample = tmp_path / 'sample.txt'
+    sample.write_text('alpha beta\nalpha\nbeta\n')
+
+    output = grep(f'-n -- "alpha beta" {sample}')
+
+    assert output == '1:alpha beta'
+
+
+def test_grep_returns_empty_string_when_no_matches(tmp_path: Path) -> None:
+    sample = tmp_path / 'sample.txt'
+    sample.write_text('alpha\nbeta\n')
+
+    output = grep(f'-- gamma {sample}')
+
+    assert output == ''
+
+
+def test_grep_rejects_empty_args() -> None:
+    with pytest.raises(ValueError, match='args must not be empty'):
+        grep('   ')

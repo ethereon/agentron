@@ -29,9 +29,12 @@ def execute(
     desc: str,
     timeout: float | None = None,
     cwd: str | None = None,
+    ok_returncodes: tuple[int, ...] = (0,),
 ) -> str:
     if timeout is not None and timeout <= 0:
         raise ValueError('timeout must be positive')
+    if not ok_returncodes:
+        raise ValueError('ok_returncodes must not be empty')
     try:
         result = subprocess.run(
             command,
@@ -48,7 +51,7 @@ def execute(
         raise ShellExecutionError(f'{desc} timed out after {timeout:g} seconds.{suffix}') from err
 
     output = _normalize_output(result.stdout)
-    if result.returncode != 0:
+    if result.returncode not in ok_returncodes:
         if output:
             raise ShellExecutionError(f'{desc} failed ({result.returncode}):\n{output}')
         raise ShellExecutionError(f'{desc} failed ({result.returncode}).')
