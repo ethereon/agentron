@@ -55,6 +55,8 @@ async function build() {
     }
     await fs.promises.mkdir(kOutputDir, { recursive: true });
 
+    await generateStyles();
+
     // Copy the static assets dir to the output dir
     await fs.promises.cp(path.join(kProjectRoot, 'assets'), path.join(kOutputDir, 'assets'), {
         recursive: true
@@ -65,8 +67,6 @@ async function build() {
             path.join(kProjectRoot, 'src', 'index.html'),
             path.join(kOutputDir, 'index.html')
         ),
-
-        generateStyles(),
 
         esbuild.build({
             entryPoints: [path.join(kProjectRoot, 'src', 'app.ts')],

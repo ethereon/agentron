@@ -14,7 +14,7 @@ TYPESCRIPT_SRC_DIR = PROJECT_ROOT / 'src'
 TYPESCRIPT_STYLES_OUTPUT_DIR = TYPESCRIPT_SRC_DIR / 'gen' / 'styles'
 
 CSS_INTERNAL_PREFIX = 'at_'
-CSS_OUTPUT_PATH = PROJECT_ROOT / 'dist' / 'assets' / 'css' / 'app.css'
+CSS_OUTPUT_PATH = PROJECT_ROOT / 'assets' / 'css' / 'app.css'
 
 
 class HyperTypeScriptCodeGenerator(TypeScriptCodeGenerator):

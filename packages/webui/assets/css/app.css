@@ -1,0 +1,170 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+html {
+    scrollbar-gutter: stable;
+}
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--fg);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    overscroll-behavior-x: none;
+    text-wrap: pretty;
+}
+a {
+    text-decoration: none;
+}
+.app {
+    width: 820px;
+    max-width: min(calc(100vw - 40px), 820px);
+}
+:root {
+    --bg: #0a0a0a;
+    --fg: #d7d8d9;
+    --border: #444;
+    --border-hover: #EB4C08;
+    --tool-call-icon-success: #22c55e;
+    --tool-call-icon-failed: #ef4444;
+    --tool-call-name: #fdba74;
+    --tool-call-error-result-fg: #eb6f92;
+}
+.at-collapsible {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.at-collapsible-toggler {
+    opacity: 0.6;
+}
+.at-collapsible-header {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+.at-collapsible-content-container {
+    display: flex;
+}
+.at-collapsible-content-gutter {
+    flex: 0 0 16px;
+    cursor: pointer;
+    position: relative;
+    margin-right: 5px;
+}
+.at-collapsible-content-gutter::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 100%;
+    background: var(--border);
+    transition: background 1s ease;
+}
+.at-collapsible-content-gutter:hover::before {
+    background: var(--border-hover);
+}
+.at-collapsible-content {
+    flex: 1;
+}
+.at-json-tree {
+    font-size: .85rem;
+}
+.at-json-tree-count {
+    opacity: 0.5;
+}
+.at-json-tree-label {
+    opacity: 0.7;
+}
+.at-json-tree-primitive {
+    font-family: 'JetBrains Mono';
+}
+.at-json-tree-collection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-left: 0.75rem;
+    overflow-wrap: anywhere;
+}
+.at-tab-bar {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    max-width: fit-content;
+    font-size: 0.85rem;
+}
+.at-tab {
+    opacity: 0.6;
+    padding: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+.at-tab.selected {
+    opacity: 1;
+}
+.at-message-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.at-message-title {
+    font-size: .85rem;
+    opacity: 0.7;
+}
+.at-assistant-message-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.at-reasoning {
+    opacity: 0.7;
+    font-size: 0.9em;
+}
+.at-tool-call-name {
+    font-size: .85rem;
+    color: var(--tool-call-name);
+}
+.at-tool-call-header {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.at-tool-call-details {
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+}
+.at-tool-call-status-icon {
+    color: var(--tool-call-icon-success);
+}
+.at-tool-call-status-icon.failed {
+    color: var(--tool-call-icon-failed);
+}
+.at-tool-call-result {
+    font-family: 'JetBrains Mono';
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.at-tool-call-result.failed {
+    color: var(--tool-call-error-result-fg);
+}
+.at-session-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow: hidden;
+    padding: 20px 0;
+}
