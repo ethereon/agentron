@@ -324,14 +324,12 @@ def _read_unified_hunk_line(lines: list[str], index: int) -> tuple[str, int]:
     return line_content, index + 1
 
 
-def grep(args: str, cwd: str | None = None) -> str:
+def grep(args: str) -> str:
     """
     Executes grep and returns its output.
 
     Args:
         args: The arguments to pass to grep as a single string.
-
-        cwd: The working directory in which to run grep.
     """
     if not args.strip():
         raise ValueError('args must not be empty')
@@ -342,7 +340,6 @@ def grep(args: str, cwd: str | None = None) -> str:
 
     return execute(
         [grep_path, *shlex.split(args)],
-        cwd=cwd,
         desc='grep command',
         ok_returncodes=(0, 1),
     )
