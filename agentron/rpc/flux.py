@@ -143,6 +143,7 @@ class FluxProcess:
         self.process = await asyncio.create_subprocess_exec(
             'node',
             str(get_flux_path()),
+            'rpc',
             '--ipc',
             self.socket_path,
             stdout=asyncio.subprocess.PIPE,
