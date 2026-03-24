@@ -4,7 +4,7 @@ import shutil
 
 from pathlib import Path
 
-from agentron.tool.kit.shell import execute
+from agentron.kit.shell import execute
 
 
 _UNIFIED_HUNK_HEADER = re.compile(r'^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@')

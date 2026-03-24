@@ -3,7 +3,7 @@ import unittest
 import pytest
 
 from pathlib import Path
-from agentron.tool.kit.io import list_dir, patch_file, read_file, write_file, grep
+from agentron.kit.io import list_dir, patch_file, read_file, write_file, grep
 
 
 class WriteFileTests(unittest.TestCase):

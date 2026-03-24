@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from agentron.tool.kit.repl import RunInPythonREPL, REPLExecutionError
+from agentron.kit.repl import RunInPythonREPL, REPLExecutionError
 
 
 class TestRunInPythonREPL(unittest.TestCase):
