@@ -8,7 +8,7 @@ from agentron.tool.parser import (
     _resolve_union,
     generate_tool_schema,
 )
-from agentron.typing import ToolSchema
+from agentron.types.core import ToolSchema
 
 import enum
 import dataclasses

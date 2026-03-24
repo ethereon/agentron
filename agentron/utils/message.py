@@ -2,7 +2,7 @@ import uuid
 import time
 
 from typing import Any
-from agentron.typing import ContentLike, PILImage
+from agentron.types.core import ContentLike, PILImage
 from agentron.path import resolve_external_caller_path
 from agentron.types.message import (
     AssistantMessage,

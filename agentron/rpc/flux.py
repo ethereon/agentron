@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 
 from agentron.types.message import AssistantMessage, StreamingMessage
-from agentron.typing import LLMBackend, ToolSchema, StreamingMessageHandler
+from agentron.types.core import LLMBackend, ToolSchema, StreamingMessageHandler
 from agentron.model import Model
 from agentron.rpc.client import JsonRpcClient, JsonRpcError
 from agentron.rpc.utils import get_safe_socket_path
