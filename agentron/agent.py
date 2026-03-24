@@ -7,7 +7,7 @@ from agentron.model.types import ModelReasoningLevel
 from agentron.typing import LLMBackend
 from agentron.tool.manager import ToolManager
 from agentron.utils.publisher import Publisher
-from agentron.utils.messages import as_tool_result_message, extract_assistant_text, extract_tool_calls, make_user_message
+from agentron.utils.messages import as_tool_result_message, extract_assistant_text, extract_tool_calls, make_user_message, resolve_text
 from agentron.messages import (
     Content,
     AgentMessage,
@@ -45,6 +45,9 @@ class Agent:
     ) -> str | None:
         if self.is_finalized:
             raise RuntimeError('Cannot ask a finalized agent.')
+
+        if isinstance(prompt, str):
+            prompt = resolve_text(prompt)
 
         self._push_message(make_user_message(prompt))
         response = await self._resume(reasoning=reasoning)
