@@ -3,7 +3,7 @@ import uuid
 
 from typing import Iterable
 
-from agentron.model.types import ModelReasoningLevel
+from agentron.types.model import ModelReasoningLevel
 from agentron.typing import LLMBackend
 from agentron.tool.manager import ToolManager
 from agentron.utils.publisher import Publisher

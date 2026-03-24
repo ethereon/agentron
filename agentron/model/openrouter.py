@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import NotRequired, TypedDict
 
-from agentron.model.types import Model, ModelInputModality, ModelPricing
+from agentron.types.model import Model, ModelInputModality, ModelPricing
 from agentron.model.web_repo import WebModelRepo, MetadataFetchError
 
 FALLBACK_CONTEXT_WINDOW = 32000

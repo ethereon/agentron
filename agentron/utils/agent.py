@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from agentron.model.types import Model
+from agentron.types.model import Model
 from agentron.rpc.flux import FluxBackend
 from agentron.typing import ToolFunction
 from agentron.agent import Agent
