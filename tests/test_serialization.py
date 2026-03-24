@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from agentron.agent import Agent
 from agentron.serialization import auto_write_messages, read_session_data, write_messages
-from agentron.utils.messages import make_user_message
+from agentron.utils.message import make_user_message
 
 
 class WriteMessagesTests(unittest.TestCase):

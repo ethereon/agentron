@@ -7,7 +7,7 @@ from agentron.types.model import ModelReasoningLevel
 from agentron.typing import LLMBackend
 from agentron.tool.manager import ToolManager
 from agentron.utils.publisher import Publisher
-from agentron.utils.messages import as_tool_result_message, extract_assistant_text, extract_tool_calls, make_user_message, resolve_text
+from agentron.utils.message import as_tool_result_message, extract_assistant_text, extract_tool_calls, make_user_message, resolve_text
 from agentron.types.message import (
     Content,
     AgentMessage,
