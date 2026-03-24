@@ -1,7 +1,7 @@
 from typing import Sequence, Protocol
 
 from agentron.typing import ToolFunction, ToolSchema
-from agentron.messages import ToolCall, ToolResult
+from agentron.types.message import ToolCall, ToolResult
 from agentron.utils.messages import as_content
 from agentron.utils.asyn import maybe_await
 from agentron.tool.parser import generate_tool_schema

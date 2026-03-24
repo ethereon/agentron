@@ -8,7 +8,7 @@ import logging
 
 from pathlib import Path
 
-from agentron.messages import AssistantMessage, StreamingMessage
+from agentron.types.message import AssistantMessage, StreamingMessage
 from agentron.typing import LLMBackend, ToolSchema, StreamingMessageHandler
 from agentron.model import Model
 from agentron.rpc.client import JsonRpcClient, JsonRpcError

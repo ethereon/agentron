@@ -2,7 +2,7 @@ from typing import TypedDict, NotRequired
 from enum import StrEnum
 
 from agentron.model import Model, ModelReasoningLevel
-from agentron.messages import AgentMessage
+from agentron.types.message import AgentMessage
 from agentron.typing import ToolSchema
 
 

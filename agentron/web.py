@@ -14,7 +14,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 from contextlib import contextmanager
 
 from agentron.agent import Agent
-from agentron.messages import AgentMessage
+from agentron.types.message import AgentMessage
 from agentron.utils.publisher import SubscriptionStore
 from agentron.path import get_webui_root
 from agentron.serialization import read_session_data
