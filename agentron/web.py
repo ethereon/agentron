@@ -7,10 +7,11 @@ import threading
 import webbrowser
 import logging
 
+from pathlib import Path
 from typing import Any, Protocol
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
+from contextlib import contextmanager
 
 from agentron.agent import Agent
 from agentron.messages import AgentMessage
@@ -144,7 +145,10 @@ class WebServer:
     def join(self) -> None:
         """Block until the server thread exits."""
         if self._thread:
-            self._thread.join()
+            try:
+                self._thread.join()
+            except KeyboardInterrupt:
+                self.stop()
 
     def stop(self) -> None:
         """Shut down the server and block until the background thread exits."""
@@ -350,6 +354,25 @@ def _make_handler(server: WebServer):
     return _Handler
 
 
+@contextmanager
+def serve(*sources: Agent | str | Path):
+    """Context manager that starts a WebServer and registers the given sources."""
+    server = WebServer()
+    for source in sources:
+        if isinstance(source, Agent):
+            server.register_agent(source)
+        elif isinstance(source, (str, Path)):
+            server.load_sessions(Path(source))
+        else:
+            raise ValueError(f'Unsupported source type: {type(source)}')
+    server.start(open_browser=True)
+
+    yield server
+
+    print('Press Ctrl+C to stop the server and exit.')
+    server.join()
+
+
 if __name__ == '__main__':
     from argparse import ArgumentParser
 
@@ -361,9 +384,6 @@ if __name__ == '__main__':
         default=None,
         help='Path to a session JSONL file or directory to load on startup.',
     )
-    server = WebServer()
-    for path in args.parse_args().session_path:
-        server.load_sessions(path)
-    print(f'Loaded {len(server._sessions)} session(s).')
-    server.start(open_browser=True)
-    server.join()
+
+    with serve(*args.parse_args().session_path) as server:
+        print(f'Loaded {len(server._sessions)} session(s).')
