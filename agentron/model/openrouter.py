@@ -4,6 +4,7 @@ from typing import NotRequired, TypedDict
 
 from agentron.types.model import Model, ModelInputModality, ModelPricing
 from agentron.model.web_repo import WebModelRepo, MetadataFetchError
+from agentron.types.repo import ModelRepoPriority
 
 FALLBACK_CONTEXT_WINDOW = 32000
 FALLBACK_MAX_TOKENS = 4096
@@ -62,8 +63,8 @@ class OpenRouterRepo(WebModelRepo[OpenRouterModelManifest]):
             cache_name='openrouter.json',
         )
 
-    def get_priority(self, provider: str) -> int:
-        return 10 if provider == 'openrouter' else 0
+    def get_priority(self, provider: str) -> ModelRepoPriority:
+        return ModelRepoPriority.EXCLUSIVE if provider == 'openrouter' else ModelRepoPriority.DEFAULT
 
     def _is_supported_provider(self, provider: str) -> bool:
         return provider == 'openrouter'
