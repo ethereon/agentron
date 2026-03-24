@@ -218,8 +218,8 @@ def main() -> None:
     sys.path.append(str(PROJECT_ROOT))
     flux_src = FLUX_ROOT / 'src'
     translation_table = {
-        'agentron.messages': flux_src / 'agent-message.ts',
-        'agentron.model.types': flux_src / 'model.ts',
+        'agentron.types.message': flux_src / 'agent-message.ts',
+        'agentron.types.model': flux_src / 'model.ts',
         'agentron.rpc.api': flux_src / 'api.ts',
     }
     imports = {

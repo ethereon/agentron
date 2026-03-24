@@ -2,7 +2,7 @@ import os
 import json
 import logging
 
-from agentron.model.types import Model
+from agentron.types.model import Model
 from agentron.path import get_auth_table_path
 
 logger = logging.getLogger(__name__)

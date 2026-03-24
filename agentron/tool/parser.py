@@ -10,7 +10,7 @@ import types
 import typing
 
 from typing import Any, Callable, get_type_hints
-from agentron.typing import ToolSchema
+from agentron.types.core import ToolSchema
 
 # Mapping from Python built-in / typing types to JSON Schema type strings
 _PRIMITIVE_MAP: dict[Any, str] = {

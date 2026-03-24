@@ -5,7 +5,7 @@ from typing import Any, TypeGuard
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen, Request
 
-from agentron.model.types import Model
+from agentron.types.model import Model
 from agentron.path import get_cache_dir
 
 logger = logging.getLogger(__name__)

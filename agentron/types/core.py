@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Callable, Any, Awaitable, TypedDict, Protocol
-from agentron.messages import Content, AgentMessage, AssistantMessage, StreamingMessage
-from agentron.model.types import ModelReasoningLevel
+from agentron.types.message import Content, AgentMessage, AssistantMessage, StreamingMessage
+from agentron.types.model import ModelReasoningLevel
 
 if TYPE_CHECKING:
     from PIL import Image

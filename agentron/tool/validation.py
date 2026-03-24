@@ -1,6 +1,6 @@
 from typing import Any
 
-from agentron.typing import ToolSchema
+from agentron.types.core import ToolSchema
 
 
 class ToolValidationError(RuntimeError): ...

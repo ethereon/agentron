@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 if TYPE_CHECKING:
     from agentron.agent import Agent
-    from agentron.messages import AgentMessage
+    from agentron.types.message import AgentMessage
     from agentron.utils.publisher import Subscription
 
 _CURRENT_SERIALIZATION_VERSION = 1

@@ -1,5 +1,5 @@
 from typing import Sequence
-from agentron.model.types import Model, ModelInputModality, ModelPricing, ModelApi
+from agentron.types.model import Model, ModelInputModality, ModelPricing, ModelApi
 
 
 def make_model(

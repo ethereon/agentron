@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal, TypedDict
 
-from agentron.model.types import Model, ModelApi, ModelPricing
+from agentron.types.model import Model, ModelApi, ModelPricing
 from agentron.model.web_repo import WebModelRepo
 
 MODELS_DEV_URL = 'https://models.dev/api.json'

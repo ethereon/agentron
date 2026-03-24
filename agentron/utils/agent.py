@@ -1,12 +1,12 @@
 from pathlib import Path
 
-from agentron.model.types import Model
+from agentron.types.model import Model
 from agentron.rpc.flux import FluxBackend
-from agentron.typing import ToolFunction
+from agentron.types.core import ToolFunction
 from agentron.agent import Agent
 from agentron.tool.manager import CoreToolManager
 from agentron.model.auth import resolve_api_key
-from agentron.utils.messages import make_system_message
+from agentron.utils.message import make_system_message
 from agentron.serialization import auto_write_messages
 from agentron.terminal import TerminalOutput
 

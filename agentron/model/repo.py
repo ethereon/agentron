@@ -2,7 +2,7 @@ from typing import Protocol
 
 from agentron.model.models_dev import ModelsDevRepo
 from agentron.model.openrouter import OpenRouterRepo
-from agentron.model.types import Model
+from agentron.types.model import Model
 
 
 class ModelRepo(Protocol):

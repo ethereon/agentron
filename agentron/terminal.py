@@ -5,7 +5,7 @@ import sys
 
 from agentron.agent import Agent
 from agentron.utils.publisher import SubscriptionStore
-from agentron.messages import (
+from agentron.types.message import (
     AgentMessage,
     AssistantContent,
     AssistantMessage,
