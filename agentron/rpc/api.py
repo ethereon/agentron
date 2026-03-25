@@ -1,9 +1,18 @@
-from typing import TypedDict, NotRequired
+from typing import TypedDict, NotRequired, Literal, Any
 from enum import StrEnum
 
 from agentron.model import Model, ModelReasoningLevel
 from agentron.types.message import AgentMessage
 from agentron.types.core import ToolSchema
+
+
+class OAuthLoginData(TypedDict):
+    type: Literal['oauth']
+    provider: str
+    credentials: dict[str, Any]
+
+
+type ApiKeySource = str | OAuthLoginData
 
 
 class NotificationKind(StrEnum):
@@ -19,7 +28,7 @@ class SessionStartRequest(TypedDict):
     session_id: str
     model: Model
     tools: list[ToolSchema]
-    api_key: NotRequired[str | None]
+    api_key: NotRequired[ApiKeySource | None]
 
 
 class TransmitRequest(TypedDict):

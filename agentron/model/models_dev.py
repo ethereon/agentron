@@ -4,6 +4,7 @@ from typing import Literal, TypedDict
 
 from agentron.types.model import Model, ModelApi, ModelPricing
 from agentron.model.web_repo import WebModelRepo
+from agentron.types.repo import ModelRepoPriority
 
 MODELS_DEV_URL = 'https://models.dev/api.json'
 FALLBACK_CONTEXT_WINDOW = 4096
@@ -56,8 +57,8 @@ class ModelsDevRepo(WebModelRepo[ModelsDevManifest]):
             cache_name='models.dev.json',
         )
 
-    def get_priority(self, provider: str) -> int:
-        return 0
+    def get_priority(self, provider: str) -> ModelRepoPriority:
+        return ModelRepoPriority.DEFAULT
 
     def _find(self, provider: str, model: str) -> Model | None:
         assert self._manifest is not None

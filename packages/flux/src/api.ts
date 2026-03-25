@@ -4,6 +4,14 @@ import type { AgentMessage } from './agent-message.js';
 import type { ToolSchema } from './tool-schema.js';
 import type { Model, ModelReasoningLevel } from './model.js';
 
+export interface OAuthLoginData {
+    type: 'oauth';
+    provider: string;
+    credentials: Record<string, unknown>;
+}
+
+export type ApiKeySource = string | OAuthLoginData;
+
 export type NotificationKind = 'streaming_message';
 
 export type RequestKind = 'session_start' | 'transmit';
@@ -12,7 +20,7 @@ export interface SessionStartRequest {
     session_id: string;
     model: Model;
     tools: ToolSchema[];
-    api_key?: string | null;
+    api_key?: ApiKeySource | null;
 }
 
 export interface TransmitRequest {

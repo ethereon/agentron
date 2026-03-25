@@ -15,7 +15,7 @@
         "test": "vitest"
     },
     "dependencies": {
-        "@mariozechner/pi-ai": "^0.57.1"
+        "@mariozechner/pi-ai": "^0.62.0"
     },
     "devDependencies": {
         "prettier": "^3.8.1",

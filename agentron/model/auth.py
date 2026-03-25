@@ -3,12 +3,13 @@ import json
 import logging
 
 from agentron.types.model import Model
+from agentron.rpc.api import ApiKeySource
 from agentron.path import get_auth_table_path
 
 logger = logging.getLogger(__name__)
 
 
-def resolve_api_key(model: Model) -> str | None:
+def resolve_api_key(model: Model) -> ApiKeySource | None:
     # Check model-specific environment variables
     # e.g.: OPENROUTER_API_KEY
     candidates = model.get('auth_env_vars', [])
