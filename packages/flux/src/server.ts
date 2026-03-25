@@ -79,7 +79,7 @@ export class RpcServer {
         if (apiKeySource.type === 'oauth') {
             return resolveApiKey(apiKeySource);
         }
-        throw Error(`Invalid api key source specified: ${JSON.stringify(apiKeySource)}`);
+        throw Error(`Invalid api key source specified.`);
     }
 
     private validateSessionStartRequest(request: SessionStartRequest): void {
