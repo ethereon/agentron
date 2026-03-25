@@ -22,7 +22,9 @@ export async function saveOAuthLoginData(
             throw new Error(`Invalid auth file encountered at: ${authFile}`);
         }
     } catch (err) {
-        // Ignore errors (file not found, invalid JSON, etc.)
+        if ((err as NodeJS.ErrnoException)?.code !== 'ENOENT') {
+            throw err;
+        }
     }
 
     // Add the new credentials
