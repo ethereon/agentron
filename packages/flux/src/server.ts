@@ -4,17 +4,19 @@ import { UnixRpcServer } from '@ethereon/ein/unix-rpc-server';
 
 import type { AssistantMessage } from './agent-message.js';
 import type { ToolSet } from './llm-request.js';
+import type {
+    NotificationKind,
+    RequestKind,
+    SessionStartRequest,
+    TransmitRequest,
+    ApiKeySource
+} from './api.js';
 
 import { PiBackend } from './pi/pi-backend.js';
 import { isModel, isModelReasoningLevel } from './model.validation.js';
 import { isToolSchema } from './tool-schema.validation.js';
 import { isAgentMessage } from './agent-message.validation.js';
-import {
-    type NotificationKind,
-    type RequestKind,
-    type SessionStartRequest,
-    type TransmitRequest
-} from './api.js';
+import { resolveApiKey } from './pi/pi-auth.js';
 
 interface RpcServerParams {
     socketPath: string;
@@ -51,19 +53,33 @@ export class RpcServer {
         return this.server.start();
     }
 
-    private startSession(request: SessionStartRequest): void {
+    private async startSession(request: SessionStartRequest): Promise<void> {
         this.validateSessionStartRequest(request);
         const sessionId = request.session_id;
+        const apiKey = await this.resolveApiKey(request.api_key);
         this.sessions.set(sessionId, {
             sessionId: sessionId,
             backend: new PiBackend({
                 model: request.model,
-                apiKey: request.api_key ?? undefined
+                apiKey
             }),
             tools: {
                 tools: request.tools
             }
         });
+    }
+
+    private async resolveApiKey(apiKeySource?: ApiKeySource | null): Promise<string | undefined> {
+        if (apiKeySource == null) {
+            return undefined;
+        }
+        if (typeof apiKeySource === 'string') {
+            return apiKeySource;
+        }
+        if (apiKeySource.type === 'oauth') {
+            return resolveApiKey(apiKeySource);
+        }
+        throw Error(`Invalid api key source specified: ${JSON.stringify(apiKeySource)}`);
     }
 
     private validateSessionStartRequest(request: SessionStartRequest): void {
@@ -78,9 +94,6 @@ export class RpcServer {
                 const name = (tool as any)?.name ?? 'Unknown';
                 throw new Error(`Invalid tool specification (${name}).`);
             }
-        }
-        if (request.api_key && typeof request.api_key !== 'string') {
-            throw new Error('API key must be a string.');
         }
         const sessionId = request.session_id;
         if (typeof sessionId !== 'string') {
