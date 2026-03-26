@@ -27,6 +27,12 @@ def handle_login_command(args: Namespace) -> None:
     run_login()
 
 
+def handle_web_command(args: Namespace) -> None:
+    from agentron.cli.web import run_web_ui
+
+    run_web_ui(args.session_paths)
+
+
 def main():
     parser = ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(
@@ -40,6 +46,7 @@ def main():
         'code',
         help='Run a coding agent.',
     )
+    code_parser.set_defaults(func=handle_code_command)
     code_parser.add_argument(
         '--system',
         required=True,
@@ -67,7 +74,6 @@ def main():
         help='Reasoning level for the coding agent.',
         choices=get_args(ModelReasoningLevel.__value__),
     )
-    code_parser.set_defaults(func=handle_code_command)
 
     # Login command
     login_parser = subparsers.add_parser(
@@ -75,6 +81,20 @@ def main():
         help='Login to an OAuth provider like OpenAI ChatGPT.',
     )
     login_parser.set_defaults(func=handle_login_command)
+
+    # Web command
+    web_parser = subparsers.add_parser(
+        'web',
+        help='Launch the Agentron web UI.',
+    )
+    web_parser.set_defaults(func=handle_web_command)
+    web_parser.add_argument(
+        'session_paths',
+        type=Path,
+        nargs='+',
+        default=None,
+        help='One or more path to a session file or directory containing session files to load in the web UI.',
+    )
 
     args = parser.parse_args()
     args.func(args)
