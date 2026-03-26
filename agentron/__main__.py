@@ -48,9 +48,9 @@ def main():
     )
     code_parser.set_defaults(func=handle_code_command)
     code_parser.add_argument(
-        '--system',
+        '--model',
         required=True,
-        help='System prompt for the coding agent. May be a path to a file or a string.',
+        help='Model to use for the coding agent (e.g.: openai-codex/gpt-5.4).',
     )
     code_parser.add_argument(
         '--user',
@@ -58,9 +58,10 @@ def main():
         help='User prompt for the coding agent. May be a path to a file or a string.',
     )
     code_parser.add_argument(
-        '--model',
-        required=True,
-        help='Model to use for the coding agent (e.g.: openai-codex/gpt-5.4).',
+        '--system',
+        type=str,
+        default=None,
+        help='System prompt for the coding agent. May be a path to a file or a string.',
     )
     code_parser.add_argument(
         '--output',
