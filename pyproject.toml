@@ -21,3 +21,6 @@ target-version = "py312"
 
 [tool.ruff.format]
 quote-style = "single"
+
+[project.scripts]
+agentron = "agentron.__main__:main"

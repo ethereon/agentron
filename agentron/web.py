@@ -371,19 +371,3 @@ def serve(*sources: Agent | str | Path):
 
     print('Press Ctrl+C to stop the server and exit.')
     server.join()
-
-
-if __name__ == '__main__':
-    from argparse import ArgumentParser
-
-    args = ArgumentParser(description='Start the Agentron web server to visualize agent sessions.')
-    args.add_argument(
-        'session_path',
-        type=Path,
-        nargs='+',
-        default=None,
-        help='Path to a session JSONL file or directory to load on startup.',
-    )
-
-    with serve(*args.parse_args().session_path) as server:
-        print(f'Loaded {len(server._sessions)} session(s).')
