@@ -70,7 +70,7 @@ class UserMessageView {
                 class: style.message_text,
                 text: msg.content.text
             }),
-            isExpanded: true
+            isExpanded: false
         });
     }
 }
