@@ -3,6 +3,7 @@ import asyncio
 from pathlib import Path
 
 from agentron import make_agent, get_model
+from agentron.agent import Agent
 from agentron.types.model import ModelReasoningLevel
 from agentron.kit.io import read_file, write_file, patch_file
 from agentron.kit.shell import bash
@@ -33,14 +34,12 @@ def resolve_system_prompt(source: str | None) -> str:
     return resolve_prompt(source)
 
 
-def run_coding_agent(
+def make_coding_agent(
     model: str,
-    user_prompt: str,
     system_prompt: str | None = None,
     output: Path | None = None,
-    reasoning: ModelReasoningLevel = 'medium',
-):
-    agent = make_agent(
+) -> Agent:
+    return make_agent(
         model=get_model(model),
         system_prompt=resolve_system_prompt(system_prompt),
         tools=[
@@ -51,10 +50,25 @@ def run_coding_agent(
         ],
         output=output,
     )
+
+
+def run_coding_agent(
+    model: str,
+    user_prompt: str,
+    system_prompt: str | None = None,
+    output: Path | None = None,
+    reasoning: ModelReasoningLevel = 'medium',
+):
+    agent = make_coding_agent(
+        model=model,
+        system_prompt=system_prompt,
+        output=output,
+    )
+    user_prompt = resolve_prompt(user_prompt)
     with serve(agent):
         asyncio.run(
             agent.ask(
-                resolve_prompt(user_prompt),
+                user_prompt,
                 reasoning=reasoning,
             )
         )
