@@ -18,7 +18,7 @@ import { renderJsonTree } from '../components/json-tree/json-tree.js';
 import { TabBar } from '../components/tab-bar/tab-bar.js';
 import { TabView } from '../components/tab-view/tab-view.js';
 import { makeIcon } from '../icons.js';
-import { collapsibleMessage } from './collapsible-message.js';
+import { collapsibleMessage, makePreviewSnippet } from './message-view-utils.js';
 
 export type AgentMessageView = SystemMessageView | UserMessageView | AssistantMessageView;
 
@@ -274,15 +274,33 @@ class ToolCallView {
             class: style.tool_call_status_icon
         });
 
+        const header = div({
+            class: style.tool_call_header,
+            children: [
+                span({ text: 'Tool: ', class: style.message_title }),
+                span({ text: toolCall.name, class: style.tool_call_name }),
+                this.statusIcon
+            ]
+        });
+
+        // Show a preview of the tool call argument.
+        // Currently special cased for file paths.
+        const args = this.toolCall.arguments;
+        const path = args?.path;
+        if (typeof path === 'string') {
+            const fileName = path.split('/').at(-1)!.trim();
+            if (fileName && fileName.length > 0) {
+                header.appendChild(
+                    div({
+                        class: style.message_preview,
+                        text: makePreviewSnippet(fileName)
+                    })
+                );
+            }
+        }
+
         this.container = Collapsible.element({
-            headerContent: div({
-                class: style.tool_call_header,
-                children: [
-                    span({ text: 'Tool: ', class: style.message_title }),
-                    span({ text: toolCall.name, class: style.tool_call_name }),
-                    this.statusIcon
-                ]
-            }),
+            headerContent: header,
             content: () => {
                 // Lazily instantiate the details view.
                 if (this.detailsView == null) {

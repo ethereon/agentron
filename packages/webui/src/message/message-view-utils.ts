@@ -26,12 +26,9 @@ export function collapsibleMessage(params: CollapsibleParams): HTMLElement {
         if (!isExpanded && !previewSet) {
             const textContent = sourceContent.textContent;
             if (textContent != null) {
-                let previewText = textContent.trim().split('\n', 1)[0].trim();
-                if (previewText.length > Limits.MAX_PREVIEW_LENGTH) {
-                    previewText = previewText.slice(0, Limits.MAX_PREVIEW_LENGTH);
-                }
+                const previewText = makePreviewSnippet(textContent);
                 if (previewText.length > 0) {
-                    preview.textContent = ` — ${previewText}${previewText.length < textContent.length ? '…' : ''}`;
+                    preview.textContent = previewText;
                     previewSet = true;
                 }
             }
@@ -42,4 +39,15 @@ export function collapsibleMessage(params: CollapsibleParams): HTMLElement {
     onExpansionChange(collapsible.isExpanded);
 
     return collapsible.container;
+}
+
+export function makePreviewSnippet(content: string): string {
+    let previewText = content.trim().split('\n', 1)[0].trim();
+    if (previewText.length > Limits.MAX_PREVIEW_LENGTH) {
+        previewText = previewText.slice(0, Limits.MAX_PREVIEW_LENGTH);
+    }
+    if (previewText.length > 0) {
+        return ` — ${previewText}${previewText.length < content.length ? '…' : ''}`;
+    }
+    return previewText;
 }
