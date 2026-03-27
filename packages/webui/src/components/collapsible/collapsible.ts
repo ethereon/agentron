@@ -5,7 +5,7 @@ import { makeIcon } from '../../icons.js';
 
 type LazyContentProvider = () => HTMLElement;
 
-interface CollapsibleParams {
+export interface CollapsibleParams {
     content: HTMLElement | LazyContentProvider;
     isExpanded: boolean;
 
@@ -13,6 +13,7 @@ interface CollapsibleParams {
     titleClass?: string;
 
     headerContent?: HTMLElement;
+    onExpansionChange?: (isExpanded: boolean) => void;
 }
 
 export class Collapsible {
@@ -22,9 +23,15 @@ export class Collapsible {
     readonly subview: HTMLElement;
     readonly content: LazyContentProvider;
 
+    onExpansionChange?: (isExpanded: boolean) => void;
+
     private _isExpanded?: boolean;
 
     constructor(params: CollapsibleParams) {
+        if (params.onExpansionChange) {
+            this.onExpansionChange = params.onExpansionChange;
+        }
+
         this.toggler = div({
             class: style.collapsible_toggler
         });
@@ -77,9 +84,14 @@ export class Collapsible {
         this._isExpanded = expanded;
         this.toggler.replaceChildren(makeIcon(expanded ? 'ChevronDown' : 'ChevronRight'));
         this.subview.replaceChildren(...(expanded ? [this.content()] : []));
+        this.onExpansionChange?.(expanded);
+    }
+
+    get isExpanded(): boolean {
+        return !!this._isExpanded;
     }
 
     static element(params: CollapsibleParams): HTMLElement {
-        return new Collapsible(params).container;
+        return new this(params).container;
     }
 }

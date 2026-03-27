@@ -18,6 +18,7 @@ import { renderJsonTree } from '../components/json-tree/json-tree.js';
 import { TabBar } from '../components/tab-bar/tab-bar.js';
 import { TabView } from '../components/tab-view/tab-view.js';
 import { makeIcon } from '../icons.js';
+import { collapsibleMessage } from './collapsible-message.js';
 
 export type AgentMessageView = SystemMessageView | UserMessageView | AssistantMessageView;
 
@@ -46,7 +47,7 @@ class SystemMessageView {
     readonly container: HTMLElement;
 
     constructor(msg: SystemMessage) {
-        this.container = Collapsible.element({
+        this.container = collapsibleMessage({
             title: 'System Prompt',
             titleClass: style.message_title,
             content: div({
@@ -62,7 +63,7 @@ class UserMessageView {
     readonly container: HTMLElement;
 
     constructor(msg: UserMessage) {
-        this.container = Collapsible.element({
+        this.container = collapsibleMessage({
             title: 'User',
             titleClass: style.message_title,
             content: div({
@@ -241,7 +242,7 @@ class ReasoningView extends MutableContentView {
     constructor(reasoning: string) {
         super(reasoning);
         this.contentView.classList.add(style.reasoning);
-        this.container = Collapsible.element({
+        this.container = collapsibleMessage({
             title: 'Reasoning',
             titleClass: style.message_title,
             content: this.contentView,
@@ -255,7 +256,7 @@ class AssistantResponseView extends MutableContentView {
 
     constructor(response: string) {
         super(response);
-        this.container = Collapsible.element({
+        this.container = collapsibleMessage({
             title: 'Assistant',
             titleClass: style.message_title,
             content: this.contentView,

@@ -115,9 +115,12 @@ a {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
-.at-message-title {
+.at-message-title, .at-message-preview {
     font-size: .85rem;
     opacity: 0.7;
+}
+.at-message-preview {
+    opacity: 0.5;
 }
 .at-assistant-message-container {
     display: flex;
