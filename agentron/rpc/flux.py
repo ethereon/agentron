@@ -27,7 +27,7 @@ class FluxBackend(LLMBackend):
         self,
         model: Model,
         tools: list[ToolSchema],
-        api_key: str | None,
+        api_key: api.ApiKeySource | None,
     ) -> None:
         self.model = model
         self.tools = tools
