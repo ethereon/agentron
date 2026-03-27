@@ -189,9 +189,9 @@ function asPiStopReason(reason: string | undefined): pi.StopReason {
     }
 }
 
-function fromPiStopReason(reason: pi.StopReason | undefined): FinishReason {
+function fromPiStopReason(reason: pi.StopReason | undefined): FinishReason | undefined {
     if (reason == null) {
-        return 'stop';
+        return undefined;
     }
     switch (reason) {
         case 'stop':

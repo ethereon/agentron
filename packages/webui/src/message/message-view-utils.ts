@@ -7,7 +7,11 @@ const enum Limits {
     MAX_PREVIEW_LENGTH = 80
 }
 
-export function collapsibleMessage(params: CollapsibleParams): HTMLElement {
+export function makeCollapsibleMessageElement(params: CollapsibleParams): HTMLElement {
+    return makeCollapsibleMessage(params).container;
+}
+
+export function makeCollapsibleMessage(params: CollapsibleParams): Collapsible {
     const collapsible = new Collapsible(params);
     const sourceContent = params.content;
     if (!(sourceContent instanceof HTMLElement)) {
@@ -38,7 +42,7 @@ export function collapsibleMessage(params: CollapsibleParams): HTMLElement {
     collapsible.onExpansionChange = onExpansionChange;
     onExpansionChange(collapsible.isExpanded);
 
-    return collapsible.container;
+    return collapsible;
 }
 
 export function makePreviewSnippet(content: string): string {

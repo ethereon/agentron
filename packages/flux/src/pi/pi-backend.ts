@@ -99,15 +99,23 @@ function maybeStreamMessage(
         default:
             return;
     }
+
+    const partial = fromPiAssistantMessage({
+        id: messageId,
+        message: ev.partial
+    });
+    // Clear the finish reason from partial messages.
+    // (pi sets it to 'stop' by default).
+    if (partial.finish_reason != null) {
+        partial.finish_reason = undefined;
+    }
+
     callback({
         type,
         session_id: sessionId,
         content_index: ev.contentIndex,
         delta,
-        partial: fromPiAssistantMessage({
-            id: messageId,
-            message: ev.partial
-        })
+        partial
     });
 }
 

@@ -18,7 +18,11 @@ import { renderJsonTree } from '../components/json-tree/json-tree.js';
 import { TabBar } from '../components/tab-bar/tab-bar.js';
 import { TabView } from '../components/tab-view/tab-view.js';
 import { makeIcon } from '../icons.js';
-import { collapsibleMessage, makePreviewSnippet } from './message-view-utils.js';
+import {
+    makeCollapsibleMessageElement,
+    makeCollapsibleMessage,
+    makePreviewSnippet
+} from './message-view-utils.js';
 
 export type AgentMessageView = SystemMessageView | UserMessageView | AssistantMessageView;
 
@@ -47,7 +51,7 @@ class SystemMessageView {
     readonly container: HTMLElement;
 
     constructor(msg: SystemMessage) {
-        this.container = collapsibleMessage({
+        this.container = makeCollapsibleMessageElement({
             title: 'System Prompt',
             titleClass: style.message_title,
             content: div({
@@ -63,7 +67,7 @@ class UserMessageView {
     readonly container: HTMLElement;
 
     constructor(msg: UserMessage) {
-        this.container = collapsibleMessage({
+        this.container = makeCollapsibleMessageElement({
             title: 'User',
             titleClass: style.message_title,
             content: div({
@@ -92,8 +96,10 @@ export class AssistantMessageView {
     syncToMessage(msg: AssistantMessage) {
         const content = msg.content;
         const subviews = this.subviews;
+        const isFinished = msg.finish_reason != null;
+        console.trace({ finishReason: msg.finish_reason, msg });
         for (let i = subviews.length; i < content.length; ++i) {
-            const newSubview = this.renderSubView(content[i]);
+            const newSubview = this.renderSubView(content[i], isFinished);
             this.appendSubView(newSubview);
         }
     }
@@ -104,16 +110,25 @@ export class AssistantMessageView {
                 this.appendSubView(new AssistantResponseView(''));
                 break;
 
-            case 'reasoning_start':
-                this.appendSubView(new ReasoningView(''));
-                break;
-
             case 'text_delta':
                 this.patchSubView(update, AssistantResponseView);
                 break;
 
+            case 'reasoning_start':
+                this.appendSubView(new ReasoningView('', true));
+                break;
+
             case 'reasoning_delta':
                 this.patchSubView(update, ReasoningView);
+                break;
+
+            case 'reasoning_end':
+                {
+                    const view = this.subviews.at(-1);
+                    if (view instanceof ReasoningView) {
+                        view.setExpanded(false);
+                    }
+                }
                 break;
         }
 
@@ -141,7 +156,10 @@ export class AssistantMessageView {
         this.container.appendChild(subView.container);
     }
 
-    private patchSubView(update: StreamingMessage, expectedType: typeof MutableContentView) {
+    private patchSubView(
+        update: StreamingMessage,
+        expectedType: new (...args: any[]) => MutableContentView
+    ) {
         const subView = this.subviews.at(-1);
         if (!subView) {
             throw new Error(`No subview found to apply streaming update`);
@@ -151,6 +169,7 @@ export class AssistantMessageView {
                 `Expected latest subview to be ${expectedType.name} when applying streaming update. Instead got ${subView.constructor.name}`
             );
         }
+
         // Use the full content rather than the delta for now.
         // The pi backend often sends a non-empty initial content on the '[text/reasoning]_start'
         // events that are duplicated on the following '[text/reasoning]_delta' events.
@@ -168,13 +187,17 @@ export class AssistantMessageView {
         subView.syncContent(newContent.text);
     }
 
-    private renderSubView(content: AssistantContent): AssistantSubView {
+    private renderSubView(content: AssistantContent, isFinished: boolean): AssistantSubView {
         switch (content.type) {
             case 'text':
                 return new AssistantResponseView(content.text);
 
             case 'reasoning':
-                return new ReasoningView(content.text);
+                return new ReasoningView(
+                    content.text,
+                    // Only in-progress reasoning views should be expanded by default.
+                    !isFinished
+                );
 
             case 'tool_call':
                 return new ToolCallView(content);
@@ -236,15 +259,22 @@ class MutableContentView {
 class ReasoningView extends MutableContentView {
     readonly container: HTMLElement;
 
-    constructor(reasoning: string) {
+    private readonly collapsible;
+
+    constructor(reasoning: string, isExpanded: boolean) {
         super(reasoning);
         this.contentView.classList.add(style.reasoning);
-        this.container = collapsibleMessage({
+        this.collapsible = makeCollapsibleMessage({
             title: 'Reasoning',
             titleClass: style.message_title,
             content: this.contentView,
-            isExpanded: true
+            isExpanded
         });
+        this.container = this.collapsible.container;
+    }
+
+    setExpanded(isExpanded: boolean) {
+        this.collapsible.setExpanded(isExpanded);
     }
 }
 
@@ -253,7 +283,7 @@ class AssistantResponseView extends MutableContentView {
 
     constructor(response: string) {
         super(response);
-        this.container = collapsibleMessage({
+        this.container = makeCollapsibleMessageElement({
             title: 'Assistant',
             titleClass: style.message_title,
             content: this.contentView,
