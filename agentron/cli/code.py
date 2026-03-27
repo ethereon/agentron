@@ -5,7 +5,7 @@ from pathlib import Path
 from agentron import make_agent, get_model
 from agentron.agent import Agent
 from agentron.types.model import ModelReasoningLevel
-from agentron.kit.io import read_file, write_file, patch_file
+from agentron.kit.io import read_file, write_file, apply_patch
 from agentron.kit.shell import bash
 from agentron.web import serve
 
@@ -45,7 +45,7 @@ def make_coding_agent(
         tools=[
             read_file,
             write_file,
-            patch_file,
+            apply_patch,
             bash,
         ],
         output=output,
