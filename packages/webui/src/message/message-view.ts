@@ -141,10 +141,7 @@ export class AssistantMessageView {
         this.container.appendChild(subView.container);
     }
 
-    private patchSubView(
-        update: StreamingMessage,
-        expectedType: new (...args: any[]) => MutableContentView
-    ) {
+    private patchSubView(update: StreamingMessage, expectedType: typeof MutableContentView) {
         const subView = this.subviews.at(-1);
         if (!subView) {
             throw new Error(`No subview found to apply streaming update`);
