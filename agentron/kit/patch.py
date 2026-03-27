@@ -1,6 +1,6 @@
 import re
 
-from pathlib import Path
+from agentron.kit.utils import resolve_path
 
 _UNIFIED_HUNK_HEADER = re.compile(r'^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@')
 
@@ -23,9 +23,9 @@ def apply_patch(patch: str, path: str) -> str:
     Args:
         patch: The patch to apply.
 
-        path: The absolute path to the file to patch.
+        path: The path to the file to patch.
     """
-    source = Path(path)
+    source = resolve_path(path)
     if not source.is_file():
         raise FileNotFoundError(f'File not found: {path}')
 

@@ -1,8 +1,7 @@
 import shlex
 import shutil
 
-from pathlib import Path
-
+from agentron.kit.utils import resolve_path
 from agentron.kit.shell import execute
 from agentron.kit.patch import apply_patch as apply_patch
 
@@ -17,7 +16,7 @@ def read_file(
     Reads the content of a file at the given path and returns it as a string.
 
     Args:
-        path: The absolute path to the file to read.
+        path: The path to the file to read.
 
         prefix_line_numbers: If True, each line in the returned content will be prefixed
                              with its line number (e.g., "1: ...").
@@ -32,7 +31,7 @@ def read_file(
     if limit is not None and limit < 0:
         raise ValueError('limit must be non-negative')
 
-    _path = Path(path)
+    _path = resolve_path(path)
     if not _path.is_file():
         raise FileNotFoundError(f'File not found: {path}')
 
@@ -58,9 +57,9 @@ def list_dir(path: str) -> str:
     Lists the contents of a directory.
 
     Args:
-        path: The absolute path to the directory to list.
+        path: The path to the directory to list.
     """
-    directory = Path(path)
+    directory = resolve_path(path)
     if not directory.exists():
         raise FileNotFoundError(f'Directory not found: {path}')
     if not directory.is_dir():
@@ -80,12 +79,11 @@ def write_file(path: str, content: str) -> str:
     Writes text content to the file at the given path.
 
     Args:
-        path: The absolute path to the file to write. The parent directory
-              must already exist.
+        path: The path to the file to write. The parent directory must already exist.
 
         content: The text content to write to the file.
     """
-    destination = Path(path)
+    destination = resolve_path(path)
     destination.write_text(content)
 
     return 'File successfully written.'
