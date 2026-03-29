@@ -10,13 +10,20 @@ from agentron.types.model import ModelReasoningLevel
 
 
 def handle_code_command(args: Namespace) -> None:
-    from agentron.cli.code import run_coding_agent
+    from agentron.cli.coding import CodingHarness
 
-    run_coding_agent(
-        system_prompt=args.system,
-        user_prompt=args.user,
+    coder = CodingHarness(
         model=args.model,
+        system_prompt=args.system,
         output=args.output,
+    )
+
+    if args.prime_repl is not None:
+        print(f'Priming Python REPL tool with code from: {args.prime_repl}')
+        coder.add_python_repl_tool(code=args.prime_repl.read_text())
+
+    coder.run(
+        user_prompt=args.user,
         reasoning=args.reasoning,
     )
 
@@ -55,13 +62,13 @@ def main():
     code_parser.add_argument(
         '--user',
         required=True,
-        help='User prompt for the coding agent. May be a path to a file or a string.',
+        help='Path to a file containing the user prompt.',
     )
     code_parser.add_argument(
         '--system',
         type=str,
         default=None,
-        help='System prompt for the coding agent. May be a path to a file or a string.',
+        help='Path to a file containing the system prompt.',
     )
     code_parser.add_argument(
         '--output',
@@ -74,6 +81,12 @@ def main():
         default='medium',
         help='Reasoning level for the coding agent.',
         choices=get_args(ModelReasoningLevel.__value__),
+    )
+    code_parser.add_argument(
+        '--prime-repl',
+        type=Path,
+        default=None,
+        help='Adds a Python REPL tool to the coding agent, and primes it by executing the given file.',
     )
 
     # Login command
