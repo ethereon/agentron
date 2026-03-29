@@ -38,6 +38,7 @@ def make_agent(
         agent.metadata['title'] = title
 
     agent.metadata['model'] = model
+    agent.metadata['cwd'] = str(Path.cwd())
 
     if output is not None:
         auto_write_messages(agent, Path(output))
