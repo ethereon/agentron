@@ -22,11 +22,12 @@ class RunInPythonREPL:
 
     def __call__(self, code: str) -> str:
         """
-        Execute code in a stateful Python REPL environment.
+        Execute Python code in a stateful REPL environment.
+
         Args:
-            code: The code to execute.
+            code: The Python code to execute.
         Returns:
-            The output of the executed code, or any error messages if execution fails.
+            The output of the executed code or expression, or any error messages if execution fails.
         """
         output_buffer = io.StringIO()
         result_sentinel = object()
