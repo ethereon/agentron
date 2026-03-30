@@ -21,15 +21,22 @@ SYSTEM_PROMPT = """You are an expert coding agent.
 """
 
 
-def resolve_prompt(source: str) -> str:
-    maybe_path = Path(source).resolve()
-    if maybe_path.is_file():
-        print(f'Loading prompt from file: {maybe_path}')
-        return maybe_path.read_text()
-    raise FileNotFoundError(f'Prompt file not found: {source}')
+def resolve_prompt(source: Path | list[Path]) -> str:
+    sources = [source] if isinstance(source, Path) else source
+    assert sources, 'At least one prompt source must be provided.'
+    texts = []
+    for source in sources:
+        maybe_path = source.resolve()
+        if maybe_path.is_file():
+            print(f'Loading prompt from file: {maybe_path}')
+            texts.append(maybe_path.read_text())
+        else:
+            raise FileNotFoundError(f'Prompt file not found: {source}')
+
+    return '\n\n'.join(texts)
 
 
-def resolve_system_prompt(source: str | None) -> str:
+def resolve_system_prompt(source: Path | None) -> str:
     if source is None:
         print('Using default system prompt.')
         return SYSTEM_PROMPT
@@ -41,11 +48,11 @@ class CodingHarness:
         self,
         *,
         model: str,
-        system_prompt: str | None = None,
+        system_prompt: str,
         output: Path | None = None,
     ):
         self.model = get_model(model)
-        self.system_prompt = resolve_system_prompt(system_prompt)
+        self.system_prompt = system_prompt
         self.output = output
         self._agent: Agent | None = None
         self.tools: list[ToolFunction] = [
@@ -81,7 +88,7 @@ class CodingHarness:
         with serve(self.agent):
             asyncio.run(
                 self.agent.ask(
-                    resolve_prompt(user_prompt),
+                    user_prompt,
                     reasoning=reasoning,
                 )
             )

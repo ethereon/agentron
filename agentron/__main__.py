@@ -10,11 +10,11 @@ from agentron.types.model import ModelReasoningLevel
 
 
 def handle_code_command(args: Namespace) -> None:
-    from agentron.cli.coding import CodingHarness
+    from agentron.cli.coding import CodingHarness, resolve_prompt, resolve_system_prompt
 
     coder = CodingHarness(
         model=args.model,
-        system_prompt=args.system,
+        system_prompt=resolve_system_prompt(args.system),
         output=args.output,
     )
 
@@ -23,7 +23,7 @@ def handle_code_command(args: Namespace) -> None:
         coder.add_python_repl_tool(code=args.prime_repl.read_text())
 
     coder.run(
-        user_prompt=args.user,
+        user_prompt=resolve_prompt(args.user),
         reasoning=args.reasoning,
     )
 
@@ -62,11 +62,13 @@ def main():
     code_parser.add_argument(
         '--user',
         required=True,
-        help='Path to a file containing the user prompt.',
+        type=Path,
+        nargs='+',
+        help='Path to a file containing the user prompt. Multiple paths can be provided, and will be concatenated to form the final prompt.',
     )
     code_parser.add_argument(
         '--system',
-        type=str,
+        type=Path,
         default=None,
         help='Path to a file containing the system prompt.',
     )
