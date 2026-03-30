@@ -209,6 +209,27 @@ class ApplyCodexPatchTests(unittest.TestCase):
 
             self.assertEqual(target.read_text(), 'two\n')
 
+    def test_apply_patch_adds_empty_file_without_trailing_newline(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+
+            result = apply_patch(
+                '\n'.join(
+                    [
+                        '*** Begin Patch',
+                        '*** Add File: empty.txt',
+                        '*** End Patch',
+                    ]
+                ),
+                workdir=str(root),
+            )
+
+            self.assertEqual(
+                result,
+                'Success. Updated the following files:\nA empty.txt\n',
+            )
+            self.assertEqual((root / 'empty.txt').read_text(), '')
+
 
 if __name__ == '__main__':
     unittest.main()

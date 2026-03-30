@@ -196,7 +196,8 @@ def _parse_one_hunk(lines: list[str], line_number: int) -> tuple[Hunk, int]:
                 break
             contents.append(line[1:])
             consumed += 1
-        return AddFileHunk(path=path, contents='\n'.join(contents) + '\n'), consumed
+        file_contents = '' if not contents else '\n'.join(contents) + '\n'
+        return AddFileHunk(path=path, contents=file_contents), consumed
 
     if header.startswith(DELETE_FILE_MARKER):
         return DeleteFileHunk(path=header.removeprefix(DELETE_FILE_MARKER)), 1
