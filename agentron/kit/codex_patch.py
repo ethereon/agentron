@@ -339,7 +339,8 @@ def _compute_replacements(
             line_index = context_index + 1
 
         if not chunk.old_lines:
-            replacements.append((len(original_lines), 0, chunk.new_lines.copy()))
+            insertion_index = line_index if chunk.change_context is not None or line_index > 0 else len(original_lines)
+            replacements.append((insertion_index, 0, chunk.new_lines.copy()))
             continue
 
         pattern = chunk.old_lines

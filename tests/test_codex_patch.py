@@ -91,6 +91,27 @@ class ApplyCodexPatchTests(unittest.TestCase):
 
             self.assertEqual(target.read_text(), 'alpha\nadded line 1\nadded line 2\n')
 
+    def test_apply_patch_inserts_anchored_pure_addition_after_context(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            target = root / 'input.txt'
+            target.write_text('alpha\nbeta\ngamma\n')
+
+            apply_patch(
+                '\n'.join(
+                    [
+                        '*** Begin Patch',
+                        '*** Update File: input.txt',
+                        '@@ beta',
+                        '+beta extra',
+                        '*** End Patch',
+                    ]
+                ),
+                workdir=str(root),
+            )
+
+            self.assertEqual(target.read_text(), 'alpha\nbeta\nbeta extra\ngamma\n')
+
     def test_apply_patch_supports_end_of_file_marker(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
