@@ -3,7 +3,7 @@ import shutil
 
 from agentron.kit.utils import resolve_path
 from agentron.kit.shell import execute
-from agentron.kit.patch import apply_patch as apply_patch
+from agentron.kit.codex_patch import apply_patch as apply_patch
 
 
 def read_file(
