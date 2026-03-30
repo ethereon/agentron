@@ -6,6 +6,7 @@ from agentron.utils.message import as_content
 from agentron.utils.asyn import maybe_await
 from agentron.tool.parser import generate_tool_schema
 from agentron.tool.validation import validate_tool_arguments
+from agentron.tool.error import ToolError
 
 
 class ToolManager(Protocol):
@@ -53,4 +54,10 @@ class CoreToolManager(ToolManager):
 
 
 def _format_tool_error(err: Exception) -> str:
-    return f'{type(err).__name__}: {str(err)}'
+    return (
+        # Use the precise error message provided by the tool for ToolError instances
+        err.message
+        if isinstance(err, ToolError)
+        # For other exceptions, include the type
+        else f'{type(err).__name__}: {str(err)}'
+    )

@@ -5,13 +5,17 @@ import builtins
 import traceback
 import contextlib
 
+from agentron.tool.error import ToolError
 
-class REPLExecutionError(Exception):
+
+class REPLExecutionError(ToolError):
     pass
 
 
 class RunInPythonREPL:
     def __init__(self):
+        # Using <stdin> in exceptions keeps it consistent with the actual Python REPL.
+        self.filename = '<stdin>'
         self.main_module = types.ModuleType(
             '__main__',  # __name__
             'REPL main module',  # __doc__
@@ -34,10 +38,9 @@ class RunInPythonREPL:
         result_value = result_sentinel
 
         try:
-            module = ast.parse(code, mode='exec')
-        except Exception:
-            traceback.print_exc(file=output_buffer)
-            raise REPLExecutionError(output_buffer.getvalue())
+            module = ast.parse(code, filename=self.filename, mode='exec')
+        except SyntaxError as error:
+            raise REPLExecutionError(_format_exception_only(error))
 
         temp_result_name = None
         if module.body and isinstance(module.body[-1], ast.Expr):
@@ -51,17 +54,17 @@ class RunInPythonREPL:
             ast.fix_missing_locations(module)
 
         try:
-            compiled = compile(module, '<repl>', 'exec')
-        except Exception:
-            traceback.print_exc(file=output_buffer)
-            raise REPLExecutionError(output_buffer.getvalue())
+            compiled = compile(module, self.filename, 'exec')
+        except SyntaxError as error:
+            raise REPLExecutionError(_format_exception_only(error))
 
         with contextlib.redirect_stdout(output_buffer), contextlib.redirect_stderr(output_buffer):
             try:
                 exec(compiled, self.globals, self.globals)
-            except Exception:
-                traceback.print_exc()
-                raise REPLExecutionError(output_buffer.getvalue())
+            except Exception as error:
+                buffer_text = output_buffer.getvalue()
+                exception_text = _format_runtime_exception(error, filename=self.filename)
+                raise REPLExecutionError(f'{buffer_text}{exception_text}')
 
         if temp_result_name is not None and temp_result_name in self.globals:
             result_value = self.globals.pop(temp_result_name)
@@ -76,3 +79,17 @@ class RunInPythonREPL:
             return captured_output + '\n' + expression_output
 
         return captured_output
+
+
+def _format_exception_only(error: BaseException) -> str:
+    return ''.join(traceback.format_exception_only(type(error), error))
+
+
+def _format_runtime_exception(error: BaseException, filename: str) -> str:
+    stack = traceback.extract_tb(error.__traceback__)
+    user_stack = [frame for frame in stack if frame.filename == filename]
+
+    formatted = ['Traceback (most recent call last):\n']
+    formatted.extend(traceback.format_list(user_stack or stack[-1:]))
+    formatted.extend(traceback.format_exception_only(type(error), error))
+    return ''.join(formatted)
