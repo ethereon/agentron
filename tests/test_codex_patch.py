@@ -3,7 +3,7 @@ import unittest
 
 from pathlib import Path
 
-from agentron.kit.codex_patch import apply_patch
+from agentron.kit.codex_patch import apply_patch, PatchError
 
 
 class ApplyCodexPatchTests(unittest.TestCase):
@@ -142,7 +142,7 @@ class ApplyCodexPatchTests(unittest.TestCase):
             target = root / 'modify.txt'
             target.write_text('line1\nline2\n')
 
-            with self.assertRaisesRegex(ValueError, 'Failed to find expected lines in modify.txt'):
+            with self.assertRaisesRegex(PatchError, 'Failed to find expected lines in modify.txt'):
                 apply_patch(
                     '\n'.join(
                         [
@@ -160,7 +160,7 @@ class ApplyCodexPatchTests(unittest.TestCase):
             self.assertEqual(target.read_text(), 'line1\nline2\n')
 
     def test_apply_patch_rejects_empty_patch(self) -> None:
-        with self.assertRaisesRegex(ValueError, 'No files were modified'):
+        with self.assertRaisesRegex(PatchError, 'No files were modified'):
             apply_patch('*** Begin Patch\n*** End Patch')
 
     def test_apply_patch_accepts_whitespace_padded_markers(self) -> None:

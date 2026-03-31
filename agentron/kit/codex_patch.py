@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from agentron.kit.utils import resolve_path
+from agentron.tool.error import ToolError
 
 BEGIN_PATCH_MARKER = '*** Begin Patch'
 END_PATCH_MARKER = '*** End Patch'
@@ -45,6 +46,10 @@ class UpdateFileHunk:
 type Hunk = AddFileHunk | DeleteFileHunk | UpdateFileHunk
 
 
+class PatchError(ToolError):
+    pass
+
+
 # Implementation Notes:
 #
 # This is based off the OpenAI Codex apply_patch tool, as described here:
@@ -82,7 +87,7 @@ def apply_patch(patch: str, workdir: str | None = None) -> str:
     """
     hunks = _parse_patch(patch)
     if not hunks:
-        raise ValueError('No files were modified.')
+        raise PatchError('No files were modified.')
 
     cwd = resolve_path(workdir or Path.cwd())
     added: list[str] = []
@@ -103,7 +108,7 @@ def apply_patch(patch: str, workdir: str | None = None) -> str:
             try:
                 target.unlink()
             except OSError as exc:
-                raise OSError(f'Failed to delete file {hunk.path}') from exc
+                raise PatchError(f'Failed to delete file {hunk.path}') from exc
             deleted.append(_display_path(hunk.path, target))
             continue
 
@@ -111,7 +116,7 @@ def apply_patch(patch: str, workdir: str | None = None) -> str:
         try:
             original_contents = source.read_text()
         except OSError as exc:
-            raise type(exc)(f'Failed to read file to update {hunk.path}: {exc}') from exc
+            raise PatchError(f'Failed to read file to update {hunk.path}: {exc}') from exc
 
         new_contents = _derive_new_contents(original_contents, hunk.chunks, hunk.path)
         destination = _resolve_hunk_path(cwd, hunk.move_path) if hunk.move_path else source
@@ -124,7 +129,7 @@ def apply_patch(patch: str, workdir: str | None = None) -> str:
             try:
                 source.unlink()
             except OSError as exc:
-                raise OSError(f'Failed to remove original {hunk.path}: {exc}') from exc
+                raise PatchError(f'Failed to remove original {hunk.path}: {exc}') from exc
 
         modified.append(_display_path(hunk.move_path or hunk.path, destination))
 
@@ -179,9 +184,9 @@ def _check_patch_boundaries(lines: list[str]) -> None:
     last_line = lines[-1].strip() if lines else None
 
     if first_line != BEGIN_PATCH_MARKER:
-        raise ValueError("The first line of the patch must be '*** Begin Patch'")
+        raise PatchError("The first line of the patch must be '*** Begin Patch'")
     if last_line != END_PATCH_MARKER:
-        raise ValueError("The last line of the patch must be '*** End Patch'")
+        raise PatchError("The last line of the patch must be '*** End Patch'")
 
 
 def _parse_one_hunk(lines: list[str], line_number: int) -> tuple[Hunk, int]:
@@ -236,10 +241,10 @@ def _parse_one_hunk(lines: list[str], line_number: int) -> tuple[Hunk, int]:
             consumed += chunk_lines
 
         if not chunks:
-            raise ValueError(f"Invalid patch hunk on line {line_number}: Update file hunk for path '{path}' is empty")
+            raise PatchError(f"Invalid patch hunk on line {line_number}: Update file hunk for path '{path}' is empty")
         return UpdateFileHunk(path=path, move_path=move_path, chunks=chunks), consumed
 
-    raise ValueError(
+    raise PatchError(
         f"Invalid patch hunk on line {line_number}: '{header}' is not a valid hunk header. Valid hunk headers: '*** Add File: {{path}}', '*** Delete File: {{path}}', '*** Update File: {{path}}'"
     )
 
@@ -250,7 +255,7 @@ def _parse_update_file_chunk(
     allow_missing_context: bool,
 ) -> tuple[UpdateFileChunk, int]:
     if not lines:
-        raise ValueError(f'Invalid patch hunk on line {line_number}: Update hunk does not contain any lines')
+        raise PatchError(f'Invalid patch hunk on line {line_number}: Update hunk does not contain any lines')
 
     first_line = lines[0]
     stripped = first_line.strip()
@@ -262,12 +267,12 @@ def _parse_update_file_chunk(
         start_index = 1
     else:
         if not allow_missing_context:
-            raise ValueError(f"Invalid patch hunk on line {line_number}: Expected update hunk to start with a @@ context marker, got: '{first_line}'")
+            raise PatchError(f"Invalid patch hunk on line {line_number}: Expected update hunk to start with a @@ context marker, got: '{first_line}'")
         change_context = None
         start_index = 0
 
     if start_index >= len(lines):
-        raise ValueError(f'Invalid patch hunk on line {line_number + 1}: Update hunk does not contain any lines')
+        raise PatchError(f'Invalid patch hunk on line {line_number + 1}: Update hunk does not contain any lines')
 
     chunk = UpdateFileChunk(change_context=change_context, old_lines=[], new_lines=[])
     parsed_lines = 0
@@ -275,7 +280,7 @@ def _parse_update_file_chunk(
         stripped_line = line.strip()
         if stripped_line == EOF_MARKER:
             if parsed_lines == 0:
-                raise ValueError(f'Invalid patch hunk on line {line_number + 1}: Update hunk does not contain any lines')
+                raise PatchError(f'Invalid patch hunk on line {line_number + 1}: Update hunk does not contain any lines')
             chunk.is_end_of_file = True
             parsed_lines += 1
             break
@@ -302,7 +307,7 @@ def _parse_update_file_chunk(
             continue
 
         if parsed_lines == 0:
-            raise ValueError(
+            raise PatchError(
                 'Invalid patch hunk on line '
                 f"{line_number + 1}: Unexpected line found in update hunk: '{line}'. "
                 "Every line should start with ' ' (context line), '+' (added line), or '-' (removed line)"
@@ -336,7 +341,7 @@ def _compute_replacements(
         if chunk.change_context is not None:
             context_index = _seek_sequence(original_lines, [chunk.change_context], line_index, False)
             if context_index is None:
-                raise ValueError(f"Failed to find context '{chunk.change_context}' in {display_path}")
+                raise PatchError(f"Failed to find context '{chunk.change_context}' in {display_path}")
             line_index = context_index + 1
 
         if not chunk.old_lines:
@@ -355,7 +360,7 @@ def _compute_replacements(
             found = _seek_sequence(original_lines, pattern, line_index, chunk.is_end_of_file)
 
         if found is None:
-            raise ValueError(f'Failed to find expected lines in {display_path}:\n' + '\n'.join(chunk.old_lines))
+            raise PatchError(f'Failed to find expected lines in {display_path}:\n' + '\n'.join(chunk.old_lines))
 
         replacements.append((found, len(pattern), new_slice.copy()))
         line_index = found + len(pattern)
@@ -444,7 +449,7 @@ def _normalise_line(value: str) -> str:
 
 def _resolve_hunk_path(cwd: Path, raw_path: str | None) -> Path:
     if raw_path is None:
-        raise ValueError('Missing patch path')
+        raise PatchError('Missing patch path')
     path = Path(raw_path).expanduser()
     return path if path.is_absolute() else cwd / path
 
