@@ -1,3 +1,4 @@
+import os
 import shutil
 import subprocess
 
@@ -18,7 +19,7 @@ def bash(command: str, timeout: float | None = None) -> str:
     if bash_path is None:
         raise RuntimeError('bash executable not found on PATH.')
     return execute(
-        [bash_path, '-lc', command],
+        [bash_path, '-c', command],
         timeout=timeout,
         desc='Bash command',
     )
@@ -44,6 +45,7 @@ def execute(
             check=False,
             timeout=timeout,
             cwd=cwd,
+            env=os.environ.copy(),
         )
     except subprocess.TimeoutExpired as err:
         partial_output = _normalize_output(err.output)
