@@ -97,7 +97,7 @@ export class AssistantMessageView {
         const content = msg.content;
         const subviews = this.subviews;
         const isFinished = msg.finish_reason != null;
-        console.trace({ finishReason: msg.finish_reason, msg });
+
         for (let i = subviews.length; i < content.length; ++i) {
             const newSubview = this.renderSubView(content[i], isFinished);
             this.appendSubView(newSubview);
