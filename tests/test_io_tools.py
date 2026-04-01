@@ -58,6 +58,16 @@ class ReadFileTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'limit must be non-negative'):
                 read_file(str(source), limit=-1)
 
+    def test_read_file_rejects_directory_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+
+            with self.assertRaisesRegex(
+                IsADirectoryError,
+                'Path is a directory, not a file',
+            ):
+                read_file(str(root))
+
 
 class ListDirTests(unittest.TestCase):
     def test_list_dir_returns_sorted_children_and_suffixes_directories(self) -> None:

@@ -32,6 +32,8 @@ def read_file(
         raise ValueError('limit must be non-negative')
 
     _path = resolve_path(path)
+    if _path.is_dir():
+        raise IsADirectoryError(f'Path is a directory, not a file: {path}')
     if not _path.is_file():
         raise FileNotFoundError(f'File not found: {path}')
 
