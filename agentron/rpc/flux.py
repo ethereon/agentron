@@ -120,7 +120,7 @@ class FluxRpcServer:
         self.process = FluxProcess()
         self.rpc = JsonRpcClient(
             socket_path=self.process.socket_path,
-            response_timeout=5 * 60,
+            response_timeout=None,
         )
         self.streaming_message_handlers: dict[str, StreamingMessageHandler] = {}
 
