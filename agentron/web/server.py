@@ -8,16 +8,16 @@ import webbrowser
 import logging
 
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Protocol, Iterable
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, unquote, urlparse
 from contextlib import contextmanager
 
 from agentron.agent import Agent
+from agentron.types.session import SessionMetadata
 from agentron.types.message import AgentMessage
 from agentron.utils.publisher import SubscriptionStore
 from agentron.path import get_webui_root
-from agentron.serialization import read_session_data
 
 log = logging.getLogger(__name__)
 
@@ -28,28 +28,11 @@ class SessionSource(Protocol):
     @property
     def messages(self) -> list[AgentMessage]: ...
 
-    metadata: dict[str, Any]
-
-    session_id: str
-
-
-class SerializedSessionSource(SessionSource):
-    def __init__(self, path: Path):
-        data = read_session_data(path, header_only=True)
-        self.metadata = data.header['metadata']
-        self.session_id = data.header['session_id']
-        self.path = path
-        self._messages: list[AgentMessage] | None = None
-        self._is_pending_load = True
+    @property
+    def session_id(self) -> str: ...
 
     @property
-    def messages(self) -> list[AgentMessage]:
-        if self._is_pending_load:
-            data = read_session_data(self.path)
-            self._messages = data.messages
-            self._is_pending_load = False
-        assert self._messages is not None
-        return self._messages
+    def metadata(self) -> SessionMetadata: ...
 
 
 class WebServer:
@@ -110,21 +93,17 @@ class WebServer:
         for q in clients:
             q.put(_SENTINEL)
 
-    def load_sessions(self, path: Path) -> None:
-        with self._lock:
-            sources: list[Path] = []
-            if path.is_dir():
-                for file in path.iterdir():
-                    if file.is_file() and file.suffix == '.jsonl':
-                        sources.append(file)
-            elif path.is_file():
-                sources.append(path)
+    def add_session_sources(self, sources: Iterable[SessionSource]) -> None:
+        non_agent_sources: list[SessionSource] = []
+        for source in sources:
+            if isinstance(source, Agent):
+                self.register_agent(source)
+            else:
+                non_agent_sources.append(source)
 
-            for source in sources:
-                try:
-                    self._add_session_source(SerializedSessionSource(path=source))
-                except Exception as e:
-                    log.warning(f'Failed to load session from {source}: {e}')
+        with self._lock:
+            for source in non_agent_sources:
+                self._add_session_source(source)
 
     def start(self, *, open_browser: bool = False) -> None:
         """Start the HTTP server on a daemon background thread."""
@@ -355,16 +334,10 @@ def _make_handler(server: WebServer):
 
 
 @contextmanager
-def serve(*sources: Agent | str | Path):
+def serve(*sources: SessionSource):
     """Context manager that starts a WebServer and registers the given sources."""
     server = WebServer()
-    for source in sources:
-        if isinstance(source, Agent):
-            server.register_agent(source)
-        elif isinstance(source, (str, Path)):
-            server.load_sessions(Path(source))
-        else:
-            raise ValueError(f'Unsupported source type: {type(source)}')
+    server.add_session_sources(sources)
     server.start(open_browser=True)
 
     yield server

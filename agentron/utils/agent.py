@@ -1,3 +1,5 @@
+import time
+
 from pathlib import Path
 
 from agentron.types.model import Model
@@ -39,6 +41,7 @@ def make_agent(
 
     agent.metadata['model'] = model
     agent.metadata['cwd'] = str(Path.cwd())
+    agent.metadata['created'] = int(time.time() * 1000)
 
     if output is not None:
         auto_write_messages(agent, Path(output))
