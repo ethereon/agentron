@@ -1,6 +1,6 @@
 from typing import Iterable
 from pathlib import Path
-from agentron.web import serve
+from agentron.web.server import serve
 
 
 def run_web_ui(sources: Iterable[Path]):

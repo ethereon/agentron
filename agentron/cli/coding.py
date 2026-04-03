@@ -9,7 +9,7 @@ from agentron.types.model import ModelReasoningLevel
 from agentron.kit.io import read_file, write_file, apply_patch
 from agentron.kit.repl import RunInPythonREPL
 from agentron.kit.shell import bash
-from agentron.web import serve
+from agentron.web.server import serve
 
 SYSTEM_PROMPT = """You are an expert coding agent.
 
