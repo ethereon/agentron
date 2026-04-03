@@ -2,6 +2,8 @@
 Agentron CLI
 """
 
+import sys
+
 from pathlib import Path
 from typing import get_args
 from argparse import ArgumentParser, Namespace
@@ -114,7 +116,7 @@ def main():
     )
 
     args = parser.parse_args()
-    exit(args.func(args))
+    sys.exit(args.func(args))
 
 
 if __name__ == '__main__':
