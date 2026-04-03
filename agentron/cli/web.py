@@ -2,7 +2,7 @@ from typing import Iterable
 from pathlib import Path
 
 from agentron.web.server import serve, SessionSource
-from agentron.web.replay import SerializedSessionSource
+from agentron.web.sources import SerializedSessionSource
 
 
 def run_web_ui(paths: Iterable[Path]):

@@ -1,5 +1,4 @@
 from pathlib import Path
-from functools import cache
 
 from agentron.serialization import read_session_data, SessionHeader
 from agentron.types.session import SessionMetadata
@@ -14,21 +13,27 @@ class SerializedSessionSource(SessionSource):
 
     def __init__(self, path: Path):
         self.path = path
+        self._messages: list[AgentMessage] | None = None
+        self._header: SessionHeader | None = None
 
     @property
     def metadata(self) -> SessionMetadata:
-        return self._header['metadata']
+        return self.header['metadata']
 
     @property
     def session_id(self) -> str:
-        return self._header['session_id']
+        return self.header['session_id']
 
     @property
-    @cache
     def messages(self) -> list[AgentMessage]:
-        return read_session_data(self.path).messages
+        if self._messages is None:
+            data = read_session_data(self.path)
+            self._messages = data.messages
+            self._header = data.header
+        return self._messages
 
     @property
-    @cache
-    def _header(self) -> SessionHeader:
-        return read_session_data(self.path, header_only=True).header
+    def header(self) -> SessionHeader:
+        if self._header is None:
+            self._header = read_session_data(self.path, header_only=True).header
+        return self._header
