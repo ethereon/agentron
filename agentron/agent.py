@@ -5,6 +5,7 @@ from typing import Iterable
 
 from agentron.types.model import ModelReasoningLevel
 from agentron.types.core import LLMBackend
+from agentron.types.session import SessionMetadata
 from agentron.tool.manager import ToolManager
 from agentron.utils.publisher import Publisher
 from agentron.utils.message import as_tool_result_message, extract_assistant_text, extract_tool_calls, make_user_message, resolve_text
@@ -23,7 +24,7 @@ class Agent:
         self,
         session_id: str | None = None,
         messages: Iterable[AgentMessage] | None = None,
-        metadata: dict | None = None,
+        metadata: SessionMetadata | None = None,
     ):
         self.session_id = session_id or uuid.uuid4().hex
         self.messages: list[AgentMessage] = list(messages) if messages else []

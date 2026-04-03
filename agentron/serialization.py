@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Iterable, TypedDict, Literal
 from pathlib import Path
 from dataclasses import dataclass
 
+from agentron.types.session import SessionMetadata
+
 if TYPE_CHECKING:
     from agentron.agent import Agent
     from agentron.types.message import AgentMessage
@@ -20,7 +22,7 @@ class SessionHeader(TypedDict):
     version: int
     session_id: str
     created: int
-    metadata: dict
+    metadata: SessionMetadata
 
 
 @dataclass
@@ -50,7 +52,7 @@ class MessageWriter:
         self._file.write('\n')
         self._file.flush()
 
-    def maybe_write_header(self, *, session_id: str, metadata: dict) -> None:
+    def maybe_write_header(self, *, session_id: str, metadata: SessionMetadata) -> None:
         if not self._target_was_empty:
             return
         header = SessionHeader(
@@ -95,7 +97,7 @@ def write_messages(
     path: Path,
     *,
     session_id: str | None = None,
-    metadata: dict | None = None,
+    metadata: SessionMetadata | None = None,
 ) -> None:
     with MessageWriter(path) as writer:
         if session_id is not None:
