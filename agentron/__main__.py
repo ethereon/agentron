@@ -9,7 +9,7 @@ from argparse import ArgumentParser, Namespace
 from agentron.types.model import ModelReasoningLevel
 
 
-def handle_code_command(args: Namespace) -> None:
+def handle_code_command(args: Namespace) -> int:
     from agentron.cli.coding import CodingHarness, resolve_prompt, resolve_system_prompt
 
     coder = CodingHarness(
@@ -26,18 +26,19 @@ def handle_code_command(args: Namespace) -> None:
         user_prompt=resolve_prompt(args.user),
         reasoning=args.reasoning,
     )
+    return 0
 
 
-def handle_login_command(args: Namespace) -> None:
+def handle_login_command(args: Namespace) -> int:
     from agentron.cli.login import run_login
 
-    run_login()
+    return run_login()
 
 
-def handle_web_command(args: Namespace) -> None:
+def handle_web_command(args: Namespace) -> int:
     from agentron.cli.web import run_web_ui
 
-    run_web_ui(args.session_paths)
+    return run_web_ui(args.session_paths)
 
 
 def main():
@@ -113,7 +114,7 @@ def main():
     )
 
     args = parser.parse_args()
-    args.func(args)
+    exit(args.func(args))
 
 
 if __name__ == '__main__':

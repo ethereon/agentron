@@ -5,11 +5,15 @@ from agentron.web.server import serve, SessionSource
 from agentron.web.sources import SerializedSessionSource
 
 
-def run_web_ui(paths: Iterable[Path]):
+def run_web_ui(paths: Iterable[Path]) -> int:
     sources = _resolve_sources(paths)
+    if not sources:
+        print('No session sources found. Please provide paths to session files or directories containing session files.')
+        return 1
+
     print(f'Discovered {len(sources)} session source(s).')
     with serve(*sources):
-        pass
+        return 0
 
 
 def _resolve_sources(paths: Iterable[Path]) -> list[SessionSource]:
