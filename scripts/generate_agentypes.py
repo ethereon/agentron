@@ -223,6 +223,7 @@ def main() -> None:
         'agentron.types.model': dst / 'model.ts',
         'agentron.types.session': dst / 'session.ts',
         'agentron.rpc.api': dst / 'api.ts',
+        'agentron.web.responses': dst / 'web-responses.ts',
     }
     imports = {
         'agentron.rpc.api': {
@@ -233,6 +234,10 @@ def main() -> None:
         },
         'agentron.types.session': {
             'Model': './model.js',
+        },
+        'agentron.web.responses': {
+            'SessionMetadata': './session.js',
+            'AgentMessage': './messages.js',
         },
     }
 

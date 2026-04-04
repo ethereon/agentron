@@ -16,6 +16,7 @@ from contextlib import contextmanager
 from agentron.agent import Agent
 from agentron.types.session import SessionMetadata
 from agentron.types.message import AgentMessage
+from agentron.web.responses import SessionsResponse, MessagesResponse
 from agentron.utils.publisher import SubscriptionStore
 from agentron.path import get_webui_root
 
@@ -40,8 +41,8 @@ class WebServer:
     An HTTP server that publishes agent session activity over SSE.
 
     Endpoints:
-        GET /api/sessions                   JSON list of registered session IDs.
-        GET /api/messages?session_id=<id>   JSON list of existing messages for the session.
+        GET /api/sessions                   Metadata for registered session sources
+        GET /api/messages?session_id=<id>   Completed messages for the given session.
         GET /api/events?session_id=<id>     SSE stream for the given session.
         GET /                               Serve index.html from the static directory.
         GET /<path>                         Serve a static file from the static directory.
@@ -172,13 +173,13 @@ class WebServer:
                 except ValueError:
                     pass
 
-    def _session_ids(self) -> list[str]:
-        with self._lock:
-            return list(self._clients)
-
     def _get_source(self, session_id: str) -> SessionSource | None:
         with self._lock:
             return self._sessions.get(session_id)
+
+    def _get_all_source_metadata(self) -> dict[str, SessionMetadata]:
+        with self._lock:
+            return {session_id: src.metadata for session_id, src in self._sessions.items()}
 
     def _resolve_static_path(self, request_path: str) -> Path | None:
         relative_path = Path(unquote(request_path.lstrip('/')))
@@ -228,8 +229,8 @@ def _make_handler(server: WebServer):
                 case _:
                     self._handle_static(parsed.path)
 
-        def _handle_sessions(self) -> None:
-            body = json.dumps(server._session_ids()).encode()
+        def _write_json(self, content):
+            body = json.dumps(content).encode()
             self._send_response_headers(
                 200,
                 {
@@ -238,6 +239,10 @@ def _make_handler(server: WebServer):
                 },
             )
             self.wfile.write(body)
+
+        def _handle_sessions(self) -> None:
+            sessions: SessionsResponse = server._get_all_source_metadata()
+            self._write_json(sessions)
 
         def _require_session_id(self, parsed) -> str | None:
             params = parse_qs(parsed.query)
@@ -301,16 +306,8 @@ def _make_handler(server: WebServer):
             source = self._require_source(parsed)
             if source is None:
                 return
-
-            body = json.dumps(source.messages).encode()
-            self._send_response_headers(
-                200,
-                {
-                    'Content-Type': 'application/json',
-                    'Content-Length': str(len(body)),
-                },
-            )
-            self.wfile.write(body)
+            messages: MessagesResponse = source.messages
+            self._write_json(messages)
 
         def _handle_static(self, request_path: str) -> None:
             file_path = server._resolve_static_path(request_path)

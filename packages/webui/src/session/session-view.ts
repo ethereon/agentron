@@ -4,12 +4,15 @@ import { AsyncQueue } from '@ethereon/ein/async';
 import { DisposableObject } from '@ethereon/ein/disposable';
 
 import type { AgentMessage, StreamingMessage } from '@ethereon/agentypes/messages.js';
+import type { MessagesResponse } from '@ethereon/agentypes/web-responses.js';
+
 import {
     AgentMessageView,
     AssistantMessageView,
     renderAgentMessage
 } from '../message/message-view.js';
 import { div } from '@ethereon/ein/dom/utils';
+import { app } from '../app/app-controller.js';
 
 export class SessionView extends DisposableObject {
     readonly container: HTMLElement;
@@ -25,9 +28,17 @@ export class SessionView extends DisposableObject {
         this.container = div({
             class: style.session_view
         });
-        this.disposables.add({
-            dispose: () => this.discardEventSource()
-        });
+        this.disposables.push(
+            app.activeSession.subscribe(sessionId => {
+                if (sessionId != null) {
+                    this.setSession(sessionId);
+                }
+            }),
+
+            {
+                dispose: () => this.discardEventSource()
+            }
+        );
     }
 
     async setSession(sessionId: string) {
@@ -43,7 +54,7 @@ export class SessionView extends DisposableObject {
     private async prepareForSession(sessionId: string) {
         this.discardEventSource();
         const response = await fetch(`/api/messages?session_id=${sessionId}`);
-        const messages = await response.json();
+        const messages = (await response.json()) as MessagesResponse;
 
         // Clear prior views and state.
         this.messageViewsById.clear();
