@@ -1,12 +1,13 @@
 import * as pi from '@mariozechner/pi-ai';
 
-import type { LLMRequest, ToolSet } from '../llm-request.js';
-import type { Model } from '../types/model.js';
+import type { Model } from '@ethereon/agentypes/model.js';
 import type {
     StreamingMessageType,
     AssistantMessage,
     StreamingMessage
-} from '../types/messages.js';
+} from '@ethereon/agentypes/messages.js';
+
+import type { LLMRequest, ToolSet } from '../llm-request.js';
 import { fromPiAssistantMessage, translateToPi } from './pi-message-translator.js';
 import { jsonSchemaToolToPiTool } from './pi-tool-translator.js';
 import { asPiModel } from './pi-model-translator.js';

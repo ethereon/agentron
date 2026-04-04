@@ -6,7 +6,7 @@ import type {
     ToolResult,
     ToolResultMessage,
     ToolCall
-} from './types/messages.js';
+} from '@ethereon/agentypes/messages.js';
 
 export function textContent(text: string): TextContent {
     return {

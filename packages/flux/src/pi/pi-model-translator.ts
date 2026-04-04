@@ -1,6 +1,6 @@
 import * as pi from '@mariozechner/pi-ai';
 
-import type { Model } from '../types/model.js';
+import type { Model } from '@ethereon/agentypes/model.js';
 
 export function asPiModel(model: Model): pi.Model<pi.KnownApi> {
     return {

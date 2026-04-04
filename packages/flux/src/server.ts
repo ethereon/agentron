@@ -2,7 +2,7 @@ import type * as net from 'node:net';
 
 import { UnixRpcServer } from '@ethereon/ein/unix-rpc-server';
 
-import type { AssistantMessage } from './types/messages.js';
+import type { AssistantMessage } from '@ethereon/agentypes/messages.js';
 import type { ToolSet } from './llm-request.js';
 import type {
     NotificationKind,
@@ -10,12 +10,12 @@ import type {
     SessionStartRequest,
     TransmitRequest,
     ApiKeySource
-} from './types/api.js';
+} from '@ethereon/agentypes/api.js';
 
 import { PiBackend } from './pi/pi-backend.js';
-import { isModel, isModelReasoningLevel } from './model.validation.js';
-import { isToolSchema } from './tool-schema.validation.js';
-import { isAgentMessage } from './agent-message.validation.js';
+import { isModel, isModelReasoningLevel } from '@ethereon/agentypes/model.validation.js';
+import { isToolSchema } from '@ethereon/agentypes/tool-schema.validation.js';
+import { isAgentMessage } from '@ethereon/agentypes/messages.validation.js';
 import { resolveApiKey } from './pi/pi-auth.js';
 
 interface RpcServerParams {

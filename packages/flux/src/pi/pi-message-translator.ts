@@ -9,10 +9,8 @@ import type {
     TokenUsage,
     AssistantMessage,
     AssistantContent,
-    AssistantContentType,
-    ContentType,
     TextContent
-} from '../types/messages.js';
+} from '@ethereon/agentypes/messages.js';
 
 interface PiTranslation {
     systemPrompt: string;

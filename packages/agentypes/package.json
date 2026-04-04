@@ -1,0 +1,19 @@
+{
+    "name": "@ethereon/agentypes",
+    "version": "0.1.0",
+    "description": "Shared types for Agentron packages",
+    "license": "MIT",
+    "author": "Saumitro Dasgupta",
+    "type": "module",
+    "main": "index.js",
+    "typesVersions": {
+        "*": {
+            "*": [
+                "dist/*"
+            ]
+        }
+    },
+    "devDependencies": {
+        "typescript": "^5.9.3"
+    }
+}

@@ -17,7 +17,7 @@ from typing import Any, ForwardRef, Literal, NotRequired, TypeAliasType, Union, 
 
 
 PROJECT_ROOT = Path(__file__).parent.parent
-FLUX_ROOT = PROJECT_ROOT / 'packages' / 'flux'
+AGENTYPES_ROOT = PROJECT_ROOT / 'packages' / 'agentypes'
 
 PREAMBLE = '// Auto-generated file. Do not edit directly.\n\n'
 
@@ -192,7 +192,7 @@ def format_code(path: Path) -> None:
         ],
         text=True,
         check=True,
-        cwd=FLUX_ROOT,
+        cwd=AGENTYPES_ROOT,
     )
 
 
@@ -206,9 +206,9 @@ def maybe_generate_validation():
             'node',
             valinor,
             '--tsconfig',
-            str(FLUX_ROOT / 'tsconfig.json'),
+            str(AGENTYPES_ROOT / 'tsconfig.json'),
             '--root',
-            str(FLUX_ROOT / 'src'),
+            str(AGENTYPES_ROOT / 'src'),
         ],
         check=True,
     )
@@ -216,19 +216,20 @@ def maybe_generate_validation():
 
 def main() -> None:
     sys.path.append(str(PROJECT_ROOT))
-    flux_dst = FLUX_ROOT / 'src' / 'types'
+
+    dst = AGENTYPES_ROOT / 'src'
     translation_table = {
-        'agentron.types.message': flux_dst / 'messages.ts',
-        'agentron.types.model': flux_dst / 'model.ts',
-        'agentron.types.session': flux_dst / 'session.ts',
-        'agentron.rpc.api': flux_dst / 'api.ts',
+        'agentron.types.message': dst / 'messages.ts',
+        'agentron.types.model': dst / 'model.ts',
+        'agentron.types.session': dst / 'session.ts',
+        'agentron.rpc.api': dst / 'api.ts',
     }
     imports = {
         'agentron.rpc.api': {
             'AgentMessage': './messages.js',
             'Model': './model.js',
             'ModelReasoningLevel': './model.js',
-            'ToolSchema': '../tool-schema.js',
+            'ToolSchema': './tool-schema.js',
         },
         'agentron.types.session': {
             'Model': './model.js',

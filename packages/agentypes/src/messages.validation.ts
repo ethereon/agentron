@@ -1,4 +1,4 @@
-import type { AgentMessage } from './types/messages.js';
+import type { AgentMessage } from './messages.js';
 
 // --- AUTO-GENERATED CODE BELOW --- //
 

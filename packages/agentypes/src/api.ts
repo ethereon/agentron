@@ -2,7 +2,7 @@
 
 import type { AgentMessage } from './messages.js';
 import type { Model, ModelReasoningLevel } from './model.js';
-import type { ToolSchema } from '../tool-schema.js';
+import type { ToolSchema } from './tool-schema.js';
 
 export interface OAuthLoginData {
     type: 'oauth';

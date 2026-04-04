@@ -6,13 +6,6 @@
     "author": "Saumitro Dasgupta",
     "type": "module",
     "main": "main.js",
-    "typesVersions": {
-        "*": {
-            "*": [
-                "dist/*"
-            ]
-        }
-    },
     "scripts": {
         "test": "vitest"
     },

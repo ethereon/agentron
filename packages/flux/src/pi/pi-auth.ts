@@ -1,4 +1,4 @@
-import type { OAuthLoginData } from '../types/api.js';
+import type { OAuthLoginData } from '@ethereon/agentypes/api.js';
 
 import { getOAuthApiKey, type OAuthCredentials } from '@mariozechner/pi-ai/oauth';
 import { saveOAuthLoginData } from '../auth.js';

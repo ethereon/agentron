@@ -7,7 +7,7 @@ import type {
     JsonSchemaObject,
     JsonSchemaScalar,
     ToolSchema
-} from '../tool-schema.js';
+} from '@ethereon/agentypes/tool-schema.js';
 
 // ---- Helpers ----
 

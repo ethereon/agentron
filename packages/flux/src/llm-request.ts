@@ -1,6 +1,6 @@
-import type { AgentMessage, StreamingMessage } from './types/messages.js';
-import type { ToolSchema } from './tool-schema.js';
-import type { ModelReasoningLevel } from './types/model.js';
+import type { AgentMessage, StreamingMessage } from '@ethereon/agentypes/messages.js';
+import type { ToolSchema } from '@ethereon/agentypes/tool-schema.js';
+import type { ModelReasoningLevel } from '@ethereon/agentypes/model.js';
 
 export interface ToolSet {
     tools: ToolSchema[];

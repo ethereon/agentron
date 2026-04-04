@@ -2,7 +2,7 @@ import * as FS from 'node:fs/promises';
 import * as Path from 'node:path';
 
 import type { OAuthCredentials, OAuthProviderId } from '@mariozechner/pi-ai/oauth';
-import type { OAuthLoginData } from './types/api.js';
+import type { OAuthLoginData } from '@ethereon/agentypes/api.js';
 
 export async function saveOAuthLoginData(
     providerId: OAuthProviderId,

@@ -8,6 +8,7 @@
     "workspaces": [
         "packages/ein",
         "packages/flux",
-        "packages/webui"
+        "packages/webui",
+        "packages/agentypes"
     ]
 }
