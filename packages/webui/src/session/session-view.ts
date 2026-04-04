@@ -3,7 +3,7 @@ import * as style from '../gen/styles/session.js';
 import { AsyncQueue } from '@ethereon/ein/async';
 import { DisposableObject } from '@ethereon/ein/disposable';
 
-import type { AgentMessage, StreamingMessage } from '@ethereon/flux/agent-message';
+import type { AgentMessage, StreamingMessage } from '@ethereon/flux/types/messages.js';
 import {
     AgentMessageView,
     AssistantMessageView,

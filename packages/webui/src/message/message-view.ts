@@ -10,7 +10,7 @@ import type {
     ToolResult,
     ToolResultMessage,
     UserMessage
-} from '@ethereon/flux/agent-message';
+} from '@ethereon/flux/types/messages.js';
 
 import { div, span } from '@ethereon/ein/dom/utils';
 import { Collapsible } from '../components/collapsible/collapsible.js';

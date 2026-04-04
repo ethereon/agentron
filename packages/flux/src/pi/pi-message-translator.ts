@@ -12,7 +12,7 @@ import type {
     AssistantContentType,
     ContentType,
     TextContent
-} from '../agent-message.js';
+} from '../types/messages.js';
 
 interface PiTranslation {
     systemPrompt: string;

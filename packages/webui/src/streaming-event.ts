@@ -1,4 +1,4 @@
-import type { AgentMessage, StreamingMessage } from '@ethereon/flux/agent-message';
+import type { AgentMessage, StreamingMessage } from '@ethereon/flux/types/messages.js';
 
 export interface NewMessageEvent {
     type: 'new_message';

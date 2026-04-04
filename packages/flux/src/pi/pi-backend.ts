@@ -1,8 +1,12 @@
 import * as pi from '@mariozechner/pi-ai';
 
 import type { LLMRequest, ToolSet } from '../llm-request.js';
-import type { Model } from '../model.js';
-import type { StreamingMessageType, AssistantMessage, StreamingMessage } from '../agent-message.js';
+import type { Model } from '../types/model.js';
+import type {
+    StreamingMessageType,
+    AssistantMessage,
+    StreamingMessage
+} from '../types/messages.js';
 import { fromPiAssistantMessage, translateToPi } from './pi-message-translator.js';
 import { jsonSchemaToolToPiTool } from './pi-tool-translator.js';
 import { asPiModel } from './pi-model-translator.js';

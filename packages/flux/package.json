@@ -6,9 +6,11 @@
     "author": "Saumitro Dasgupta",
     "type": "module",
     "main": "main.js",
-    "exports": {
-        "./*": {
-            "types": "./dist/*.d.ts"
+    "typesVersions": {
+        "*": {
+            "*": [
+                "dist/*"
+            ]
         }
     },
     "scripts": {

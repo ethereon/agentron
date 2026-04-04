@@ -175,7 +175,7 @@ def generate_typescript(module_path: str, imports: dict[str, str] | None = None)
         import_lines = []
         for source, names in import_sources.items():
             names_list = ', '.join(names)
-            import_lines.append(f"import type {{ {names_list} }} from './{source}';")
+            import_lines.append(f"import type {{ {names_list} }} from '{source}';")
 
         code = '\n'.join(import_lines) + '\n\n' + code
 
@@ -216,19 +216,23 @@ def maybe_generate_validation():
 
 def main() -> None:
     sys.path.append(str(PROJECT_ROOT))
-    flux_src = FLUX_ROOT / 'src'
+    flux_dst = FLUX_ROOT / 'src' / 'types'
     translation_table = {
-        'agentron.types.message': flux_src / 'agent-message.ts',
-        'agentron.types.model': flux_src / 'model.ts',
-        'agentron.rpc.api': flux_src / 'api.ts',
+        'agentron.types.message': flux_dst / 'messages.ts',
+        'agentron.types.model': flux_dst / 'model.ts',
+        'agentron.types.session': flux_dst / 'session.ts',
+        'agentron.rpc.api': flux_dst / 'api.ts',
     }
     imports = {
         'agentron.rpc.api': {
-            'AgentMessage': 'agent-message.js',
-            'ToolSchema': 'tool-schema.js',
-            'Model': 'model.js',
-            'ModelReasoningLevel': 'model.js',
-        }
+            'AgentMessage': './messages.js',
+            'Model': './model.js',
+            'ModelReasoningLevel': './model.js',
+            'ToolSchema': '../tool-schema.js',
+        },
+        'agentron.types.session': {
+            'Model': './model.js',
+        },
     }
 
     for module_path, output_file in translation_table.items():

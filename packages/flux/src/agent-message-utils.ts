@@ -6,7 +6,7 @@ import type {
     ToolResult,
     ToolResultMessage,
     ToolCall
-} from './agent-message.js';
+} from './types/messages.js';
 
 export function textContent(text: string): TextContent {
     return {

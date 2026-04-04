@@ -1,6 +1,6 @@
-import type { AgentMessage, StreamingMessage } from './agent-message.js';
+import type { AgentMessage, StreamingMessage } from './types/messages.js';
 import type { ToolSchema } from './tool-schema.js';
-import type { ModelReasoningLevel } from './model.js';
+import type { ModelReasoningLevel } from './types/model.js';
 
 export interface ToolSet {
     tools: ToolSchema[];

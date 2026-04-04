@@ -1,4 +1,4 @@
-import type { Model, ModelReasoningLevel } from './model.js';
+import type { Model, ModelReasoningLevel } from './types/model.js';
 
 // --- AUTO-GENERATED CODE BELOW --- //
 
