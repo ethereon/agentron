@@ -377,6 +377,7 @@ class ToolDetailsView {
             selectedIndex,
             tabBar: this.tabBar
         });
+        this.tabView.container.classList.add(style.tool_call_details_content);
 
         this.container = div({
             class: style.tool_call_details,
