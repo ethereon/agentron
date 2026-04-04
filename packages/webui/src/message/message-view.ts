@@ -407,7 +407,7 @@ class ToolDetailsView {
 
     getArgsView(): HTMLElement {
         if (!this.argsView) {
-            this.argsView = renderJsonTree(this.toolCall.arguments);
+            this.argsView = renderJsonTree(this.toolCall.arguments, { unwrapRoot: true });
         }
         return this.argsView;
     }

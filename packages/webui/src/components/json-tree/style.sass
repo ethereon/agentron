@@ -11,6 +11,7 @@
 
 .at-json-tree-primitive
     font-family: $typography.mono_font
+    white-space: pre-wrap
 
 .at-json-tree-collection
     display: flex
@@ -18,3 +19,24 @@
     gap: 0.25rem
     padding-left: 0.75rem
     overflow-wrap: anywhere
+
+.at-json-tree-root-collection
+    // For unwrapped root collections
+    padding-left: 0
+
+// A key: value pair in the JSON tree.
+.at-json-tree-pair
+    display: flex
+    gap: 5px
+
+    // For a <key>: <value> pair, the wrap here forces the value to move to the
+    // next line if it wraps/has long new lines.
+    flex-wrap: wrap
+
+    // This padding forces wrapped content (due to the flex-wrap above) to be indented.
+    padding-left: 20px
+
+    .at-json-tree-label
+        // This negative margin "pulls back" the label to the left.
+        margin-left: -20px
+        flex-shrink: 0

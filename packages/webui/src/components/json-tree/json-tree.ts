@@ -5,11 +5,27 @@ import { Collapsible } from '../collapsible/collapsible.js';
 
 type JsonCollection = Array<unknown> | Record<string, unknown>;
 
-export function renderJsonTree(value: unknown): HTMLElement {
+interface RenderJsonTreeParams {
+    // If true, skips rendering a solitary root node (when it's a collection)
+    // So instead this:
+    //      <object>
+    //          <key>: <value>
+    // you get this:
+    //      <key>: <value>
+    unwrapRoot?: boolean;
+}
+
+export function renderJsonTree(value: unknown, options?: RenderJsonTreeParams): HTMLElement {
+    const unwrapRoot = options?.unwrapRoot ?? false;
     const tree = isCollection(value)
-        ? renderCollection(value, undefined, true)
+        ? renderCollection(value, undefined, true, unwrapRoot)
         : renderPrimitive(undefined, value);
     tree.classList.add(style.json_tree);
+
+    if (unwrapRoot) {
+        tree.classList.add(style.json_tree_root_collection);
+    }
+
     return tree;
 }
 
@@ -21,7 +37,12 @@ function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function renderCollection(value: JsonCollection, label?: string, isRoot = false): HTMLElement {
+function renderCollection(
+    value: JsonCollection,
+    label?: string,
+    isRoot = false,
+    unwrapped = false
+): HTMLElement {
     const content = div({
         class: style.json_tree_collection
     });
@@ -43,11 +64,13 @@ function renderCollection(value: JsonCollection, label?: string, isRoot = false)
         }
     }
 
-    return Collapsible.element({
-        headerContent: buildCollectionTitle(label, value),
-        content,
-        isExpanded: isRoot
-    });
+    return unwrapped
+        ? content
+        : Collapsible.element({
+              headerContent: buildCollectionTitle(label, value),
+              content,
+              isExpanded: isRoot
+          });
 }
 
 function renderEntry(label: string, value: unknown): HTMLElement {
@@ -65,9 +88,10 @@ function renderPrimitive(label: string | undefined, value: unknown): HTMLElement
         });
     }
     return div({
+        class: style.json_tree_pair,
         children: [
-            span({ class: style.json_tree_label, text: `${label}: ` }),
-            span({
+            div({ class: style.json_tree_label, text: `${label}: ` }),
+            div({
                 class: style.json_tree_primitive,
                 text
             })
@@ -78,7 +102,7 @@ function renderPrimitive(label: string | undefined, value: unknown): HTMLElement
 function formatPrimitive(value: unknown): string {
     switch (typeof value) {
         case 'string':
-            return JSON.stringify(value);
+            return value.length > 50 || value.includes('\n') ? value : JSON.stringify(value);
 
         case 'number':
         case 'boolean':
