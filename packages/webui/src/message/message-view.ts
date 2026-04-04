@@ -23,6 +23,7 @@ import {
     makeCollapsibleMessage,
     makePreviewSnippet
 } from './message-view-utils.js';
+import { resolveToolCallPreview } from './tool-call-preview.js';
 
 export type AgentMessageView = SystemMessageView | UserMessageView | AssistantMessageView;
 
@@ -314,19 +315,14 @@ class ToolCallView {
         });
 
         // Show a preview of the tool call argument.
-        // Currently special cased for file paths.
-        const args = this.toolCall.arguments;
-        const path = args?.path;
-        if (typeof path === 'string') {
-            const fileName = path.split('/').at(-1)!.trim();
-            if (fileName && fileName.length > 0) {
-                header.appendChild(
-                    div({
-                        class: style.message_preview,
-                        text: makePreviewSnippet(fileName)
-                    })
-                );
-            }
+        const preview = resolveToolCallPreview(toolCall);
+        if (preview && preview.length > 0) {
+            header.appendChild(
+                div({
+                    class: style.message_preview,
+                    text: makePreviewSnippet(preview)
+                })
+            );
         }
 
         this.container = Collapsible.element({

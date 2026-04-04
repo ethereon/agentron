@@ -51,7 +51,7 @@ export function makePreviewSnippet(content: string): string {
         previewText = previewText.slice(0, Limits.MAX_PREVIEW_LENGTH);
     }
     if (previewText.length > 0) {
-        return ` — ${previewText}${previewText.length < content.length ? '…' : ''}`;
+        return `${previewText}${previewText.length < content.length ? '…' : ''}`;
     }
     return previewText;
 }
