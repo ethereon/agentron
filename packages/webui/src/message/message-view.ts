@@ -4,6 +4,7 @@ import type {
     AgentMessage,
     AssistantContent,
     AssistantMessage,
+    ModelInfo,
     StreamingMessage,
     SystemMessage,
     ToolCall,
@@ -98,9 +99,10 @@ export class AssistantMessageView {
         const content = msg.content;
         const subviews = this.subviews;
         const isFinished = msg.finish_reason != null;
+        const model = msg.model;
 
         for (let i = subviews.length; i < content.length; ++i) {
-            const newSubview = this.renderSubView(content[i], isFinished);
+            const newSubview = this.renderSubView(content[i], model, isFinished);
             this.appendSubView(newSubview);
         }
     }
@@ -108,7 +110,7 @@ export class AssistantMessageView {
     applyStreamingUpdate(update: StreamingMessage) {
         switch (update.type) {
             case 'text_start':
-                this.appendSubView(new AssistantResponseView(''));
+                this.appendSubView(new AssistantResponseView('', update.partial.model));
                 break;
 
             case 'text_delta':
@@ -188,10 +190,14 @@ export class AssistantMessageView {
         subView.syncContent(newContent.text);
     }
 
-    private renderSubView(content: AssistantContent, isFinished: boolean): AssistantSubView {
+    private renderSubView(
+        content: AssistantContent,
+        model: ModelInfo,
+        isFinished: boolean
+    ): AssistantSubView {
         switch (content.type) {
             case 'text':
-                return new AssistantResponseView(content.text);
+                return new AssistantResponseView(content.text, model);
 
             case 'reasoning':
                 return new ReasoningView(
@@ -282,10 +288,10 @@ class ReasoningView extends MutableContentView {
 class AssistantResponseView extends MutableContentView {
     readonly container: HTMLElement;
 
-    constructor(response: string) {
+    constructor(response: string, model: ModelInfo) {
         super(response);
         this.container = makeCollapsibleMessageElement({
-            title: 'Assistant',
+            title: model.model,
             titleClass: style.message_title,
             content: this.contentView,
             isExpanded: true
