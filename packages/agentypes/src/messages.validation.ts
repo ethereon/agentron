@@ -128,12 +128,7 @@ function isAssistantMessage(obj: any): boolean {
 }
 
 function isToolResult(obj: any): boolean {
-    return (
-        obj != null &&
-        typeof obj.success === 'boolean' &&
-        isTextContent(obj.content) &&
-        (obj.internal_error == null || typeof obj.internal_error === 'string')
-    );
+    return obj != null && typeof obj.success === 'boolean' && isTextContent(obj.content);
 }
 
 function isToolResultMessage(obj: any): boolean {

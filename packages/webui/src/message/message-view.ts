@@ -15,9 +15,6 @@ import type {
 
 import { div, span } from '@ethereon/ein/dom/utils';
 import { Collapsible } from '../components/collapsible/collapsible.js';
-import { renderJsonTree } from '../components/json-tree/json-tree.js';
-import { TabBar } from '../components/tab-bar/tab-bar.js';
-import { TabView } from '../components/tab-view/tab-view.js';
 import { makeIcon } from '../icons.js';
 import {
     makeCollapsibleMessageElement,
@@ -25,6 +22,7 @@ import {
     makePreviewSnippet
 } from './message-view-utils.js';
 import { resolveToolCallPreview } from './tool-call-preview.js';
+import { IToolDetailsView, makeToolDetailsView } from './tool-details-view.js';
 
 export type AgentMessageView = SystemMessageView | UserMessageView | AssistantMessageView;
 
@@ -302,7 +300,7 @@ class AssistantResponseView extends MutableContentView {
 class ToolCallView {
     readonly container: HTMLElement;
 
-    private detailsView?: ToolDetailsView;
+    private detailsView?: IToolDetailsView;
     private result?: ToolResult;
     private statusIcon: HTMLElement;
 
@@ -313,11 +311,7 @@ class ToolCallView {
 
         const header = div({
             class: style.tool_call_header,
-            children: [
-                span({ text: 'Tool: ', class: style.message_title }),
-                span({ text: toolCall.name, class: style.tool_call_name }),
-                this.statusIcon
-            ]
+            children: [span({ text: toolCall.name, class: style.tool_call_name }), this.statusIcon]
         });
 
         // Show a preview of the tool call argument.
@@ -336,7 +330,7 @@ class ToolCallView {
             content: () => {
                 // Lazily instantiate the details view.
                 if (this.detailsView == null) {
-                    this.detailsView = new ToolDetailsView(this.toolCall, this.result);
+                    this.detailsView = makeToolDetailsView(this.toolCall, this.result);
                 }
                 return this.detailsView.container;
             },
@@ -352,79 +346,5 @@ class ToolCallView {
         this.detailsView?.renderResults(toolResult);
         this.statusIcon.replaceChildren(makeIcon(toolResult.success ? 'Check' : 'Cross'));
         this.statusIcon.classList.toggle(style.failed, !toolResult.success);
-    }
-}
-
-class ToolDetailsView {
-    readonly container: HTMLElement;
-
-    private readonly tabBar: TabBar;
-    private readonly tabView: TabView;
-
-    private argsView?: HTMLElement;
-    private resultView?: HTMLElement;
-
-    constructor(
-        readonly toolCall: ToolCall,
-        result?: ToolResult
-    ) {
-        const selectedIndex = result ? 1 : 0;
-        if (result != null) {
-            this.renderResults(result);
-        }
-
-        this.tabBar = new TabBar({
-            tabs: ['Arguments', 'Results'],
-            selectedIndex
-        });
-
-        this.tabView = new TabView({
-            tabs: [() => this.getArgsView(), () => this.getResultView()],
-            selectedIndex,
-            tabBar: this.tabBar
-        });
-        this.tabView.container.classList.add(style.tool_call_details_content);
-
-        this.container = div({
-            class: style.tool_call_details,
-            children: [this.tabBar.container, this.tabView.container]
-        });
-    }
-
-    renderResults(result: ToolResult) {
-        if (this.resultView != null) {
-            return;
-        }
-        let resultText = result.content?.text;
-        if (resultText == null) {
-            resultText = 'No output produced.';
-        }
-        if (result.internal_error) {
-            resultText += '\n\nInternal Error:\n' + result.internal_error;
-        }
-        this.resultView = div({
-            class: style.tool_call_result,
-            text: resultText
-        });
-        if (!result.success) {
-            this.resultView.classList.add(style.failed);
-        }
-        this.tabView?.selectTabAtIndex(1);
-    }
-
-    getArgsView(): HTMLElement {
-        if (!this.argsView) {
-            this.argsView = renderJsonTree(this.toolCall.arguments, { unwrapRoot: true });
-        }
-        return this.argsView;
-    }
-
-    getResultView(): HTMLElement {
-        if (this.resultView == null) {
-            return div({
-                text: 'Tool result not yet available.'
-            });
-        }
-        return this.resultView;
     }
 }

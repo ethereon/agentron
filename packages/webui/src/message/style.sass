@@ -54,5 +54,15 @@
     font-size: 0.85rem
     white-space: pre-wrap
     overflow-wrap: anywhere
+    &.success
+        color: $colors.tool_call_success_result_fg
     &.failed
         color: $colors.tool_call_error_result_fg
+
+.at-repl-details-input
+    display: flex
+    gap: 10px
+
+    .prompt
+        flex-shrink: 0
+        opacity: 0.5

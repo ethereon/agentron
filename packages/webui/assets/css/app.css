@@ -39,6 +39,7 @@ a {
     --tool-call-icon-failed: #ef4444;
     --tool-call-name: #fdba74;
     --tool-call-error-result-fg: #eb6f92;
+    --tool-call-success-result-fg: #c6f5c5;
     --scroll-bar-fg: #444;
 }
 .at-collapsible {
@@ -184,8 +185,19 @@ a {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
+.at-tool-call-result.success {
+    color: var(--tool-call-success-result-fg);
+}
 .at-tool-call-result.failed {
     color: var(--tool-call-error-result-fg);
+}
+.at-repl-details-input {
+    display: flex;
+    gap: 10px;
+}
+.at-repl-details-input .prompt {
+    flex-shrink: 0;
+    opacity: 0.5;
 }
 .at-session-view {
     display: flex;

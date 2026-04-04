@@ -6,4 +6,5 @@ export const $var_tool_call_icon_success = "var(--tool-call-icon-success)";
 export const $var_tool_call_icon_failed = "var(--tool-call-icon-failed)";
 export const $var_tool_call_name = "var(--tool-call-name)";
 export const $var_tool_call_error_result_fg = "var(--tool-call-error-result-fg)";
+export const $var_tool_call_success_result_fg = "var(--tool-call-success-result-fg)";
 export const $var_scroll_bar_fg = "var(--scroll-bar-fg)";
