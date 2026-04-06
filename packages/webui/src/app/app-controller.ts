@@ -15,9 +15,6 @@ export class AppController extends DisposableObject {
     readonly sessions = new Observable<SessionItem[]>(this);
     readonly activeSession = new ObservableDisposable<SessionController | undefined>(this);
 
-    // Completed messages for the active session.
-    sessionMessages?: Promise<AgentMessage[]>;
-
     constructor() {
         super();
         this.setup();
