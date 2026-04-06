@@ -36,13 +36,13 @@ a
     // header's bottom border getting clipped at the scrollbar bounds looks weird.
     scrollbar-color: $colors.scroll_bar_fg $colors.scroll_bar_bg
 
-.app
+.at-app
     display: flex
     flex-direction: column
     align-items: center
     scrollbar-color: $colors.scroll_bar_fg transparent
 
-.app-header
+.at-app-header
     height: 60px
     border-bottom: 1px solid $colors.app_header_border
     display: flex
@@ -53,18 +53,43 @@ a
     z-index: 1000
     background: $colors.bg
 
-.app-content, .app-header-content
+.at-app-content, .at-app-header-content
     width: $max_container_width
     max-width: min(calc(100vw - $(2*h_pad)), $max_container_width)
 
-.app-header-content
+.at-app-header-content
     flex-grow: 1
     display: flex
+    gap: 20px
     align-items: center
 
-.app-icon
+.at-app-icon
     a
         color: $colors.app_icon_color
         transition: color 0.5s ease-in-out
+        display: block
         &:hover
             color: $colors.app_icon_color_hover
+        svg
+            display: block
+
+.at-context-meter
+    --context-meter-progress: 0
+
+    svg
+        display: block // Remove extra space below the svg
+
+    .meter-bg
+        fill: none
+        stroke: rgb(from $colors.context_meter r g b / 0.3)
+        stroke-width: 3
+
+    .meter-progress
+        fill: none
+        stroke: $colors.context_meter
+        stroke-width: 3
+        stroke-linecap: round
+
+        stroke-dasharray: 100
+        stroke-dashoffset: calc(100 - var(--context-meter-progress))
+        transition: stroke-dashoffset 0.4s ease

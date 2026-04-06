@@ -26,13 +26,13 @@ a {
     color-scheme: dark;
     scrollbar-color: var(--scroll-bar-fg) var(--scroll-bar-bg);
 }
-.app {
+.at-app {
     display: flex;
     flex-direction: column;
     align-items: center;
     scrollbar-color: var(--scroll-bar-fg) transparent;
 }
-.app-header {
+.at-app-header {
     height: 60px;
     border-bottom: 1px solid var(--app-header-border);
     display: flex;
@@ -43,27 +43,54 @@ a {
     z-index: 1000;
     background: var(--bg);
 }
-.app-content, .app-header-content {
+.at-app-content, .at-app-header-content {
     width: 820px;
     max-width: min(calc(100vw - 40px), 820px);
 }
-.app-header-content {
+.at-app-header-content {
     flex-grow: 1;
     display: flex;
+    gap: 20px;
     align-items: center;
 }
-.app-icon a {
+.at-app-icon a {
     color: var(--app-icon-color);
     transition: color 0.5s ease-in-out;
+    display: block;
 }
-.app-icon a:hover {
+.at-app-icon a:hover {
     color: var(--app-icon-color-hover);
+}
+.at-app-icon a svg {
+    display: block;
+}
+.at-context-meter {
+    --context-meter-progress: 0;
+}
+.at-context-meter svg {
+    display: block;
+}
+.at-context-meter .meter-bg {
+    fill: none;
+    stroke: rgb(from var(--context-meter) r g b / 0.3);
+    stroke-width: 3;
+}
+.at-context-meter .meter-progress {
+    fill: none;
+    stroke: var(--context-meter);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: calc(100 - var(--context-meter-progress));
+    transition: stroke-dashoffset 0.4s ease;
 }
 :root {
     --bg: #0a0a0a;
     --fg: #d7d8d9;
     --border: #444;
     --border-hover: #EB4C08;
+    --scroll-bar-bg: #222;
+    --scroll-bar-fg: #444;
     --app-header-border: #333;
     --app-icon-color: #444;
     --app-icon-color-hover: #FDC023;
@@ -72,8 +99,7 @@ a {
     --tool-call-name: #fdba74;
     --tool-call-error-result-fg: #eb6f92;
     --tool-call-success-result-fg: #c6f5c5;
-    --scroll-bar-bg: #222;
-    --scroll-bar-fg: #444;
+    --context-meter: #444;
 }
 .at-collapsible {
     display: flex;
