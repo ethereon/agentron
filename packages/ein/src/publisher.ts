@@ -126,7 +126,9 @@ export class Observable<ValueType> extends Publisher<ValueType> {
 // An Observable for Disposable value types.
 // The observable owns value and auto-disposes it whenever a new value is set,
 // essentially acting as a combined Observable and DisposableSlot.
-export class ObservableDisposable<ValueType extends Disposable> extends Observable<ValueType> {
+export class ObservableDisposable<
+    ValueType extends Disposable | undefined | null
+> extends Observable<ValueType> {
     override dispose(): void {
         this.clear();
         super.dispose();
