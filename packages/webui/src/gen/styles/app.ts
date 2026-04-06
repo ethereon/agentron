@@ -1,7 +1,10 @@
-export const app = 'app';
-export const app_content = 'app-content';
-export const app_header = 'app-header';
-export const app_header_content = 'app-header-content';
-export const app_icon = 'app-icon';
+export const app = 'at-app';
+export const app_content = 'at-app-content';
+export const app_header = 'at-app-header';
+export const app_header_content = 'at-app-header-content';
+export const app_icon = 'at-app-icon';
+export const context_meter = 'at-context-meter';
+export const meter_bg = 'meter-bg';
+export const meter_progress = 'meter-progress';
 export const $max_container_width = '820px';
 export const $h_pad = '20px';

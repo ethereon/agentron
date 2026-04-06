@@ -25,12 +25,14 @@ export class AppController extends DisposableObject {
         const items = Object.entries(sessions).map(([id, meta]) => ({ id, meta }));
         this.sessions.publish(items);
 
-        this.setActiveSession(items?.[0].id ?? undefined);
+        this.setActiveSession(items?.[0]);
     }
 
-    setActiveSession(sessionId: string | undefined) {
+    setActiveSession(sessionItem: SessionItem | undefined) {
         this.activeSession.publish(
-            sessionId != null ? new SessionController(sessionId) : undefined
+            sessionItem != null
+                ? new SessionController(sessionItem.id, sessionItem.meta)
+                : undefined
         );
     }
 }
