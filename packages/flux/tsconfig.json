@@ -18,7 +18,8 @@
         "skipLibCheck": true,
         "verbatimModuleSyntax": true,
         "forceConsistentCasingInFileNames": true,
-        "noImplicitOverride": true
+        "noImplicitOverride": true,
+        "noUnusedLocals": true
     },
     "include": ["src"],
     "exclude": ["node_modules", "dist"],

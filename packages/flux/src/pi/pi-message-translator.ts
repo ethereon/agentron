@@ -2,7 +2,6 @@ import * as pi from '@mariozechner/pi-ai';
 
 import { textContent } from '../agent-message-utils.js';
 import type {
-    MessageType,
     FinishReason,
     AgentMessage,
     ModelInfo,

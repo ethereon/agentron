@@ -1,4 +1,3 @@
-import type { AgentMessage } from '@ethereon/agentypes/messages.js';
 import type { SessionMetadata } from '@ethereon/agentypes/session.js';
 import type { SessionId, SessionsResponse } from '@ethereon/agentypes/web-responses.js';
 
