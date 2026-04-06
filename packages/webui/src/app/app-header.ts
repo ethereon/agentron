@@ -117,7 +117,7 @@ class ContextMeter extends DisposableObject {
             return;
         }
 
-        const percentage = Math.round((100 * usage) / max);
+        const percentage = Math.max(0, Math.min(100, Math.round((100 * usage) / max)));
         this.setMeterState(
             percentage,
             `Context window usage: ${percentage}% (${usage.toLocaleString()} / ${max.toLocaleString()})`
