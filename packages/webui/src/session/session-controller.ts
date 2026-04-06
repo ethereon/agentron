@@ -15,9 +15,7 @@ export class SessionController extends DisposableObject {
         super();
 
         // Fetch completed messages
-        this.sessionMessages = new Promise(resolve => {
-            this.fetchMessages().then(resolve);
-        });
+        this.sessionMessages = this.fetchMessages();
 
         // Setup streaming updates
         const eventSource = new EventSource(`/api/events?session_id=${this.id}`);
