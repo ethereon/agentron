@@ -13,11 +13,17 @@ export class SessionController extends DisposableObject {
 
     constructor(readonly id: string) {
         super();
-
-        // Fetch completed messages
         this.sessionMessages = this.fetchMessages();
+    }
 
-        // Setup streaming updates
+    private async fetchMessages(): Promise<AgentMessage[]> {
+        const response = await fetch(`/api/messages?session_id=${this.id}`);
+        const messages = (await response.json()) as MessagesResponse;
+        this.listenForStreamingMessages();
+        return messages;
+    }
+
+    private listenForStreamingMessages() {
         const eventSource = new EventSource(`/api/events?session_id=${this.id}`);
         this.disposables.push(
             listenForEvent<MessageEvent>(eventSource, 'new_message', event => {
@@ -30,11 +36,5 @@ export class SessionController extends DisposableObject {
                 dispose: () => eventSource.close()
             }
         );
-    }
-
-    private async fetchMessages(): Promise<AgentMessage[]> {
-        const response = await fetch(`/api/messages?session_id=${this.id}`);
-        const messages = (await response.json()) as MessagesResponse;
-        return messages;
     }
 }
