@@ -33,6 +33,10 @@ export class SessionView extends DisposableObject {
         for (const message of messages) {
             this.insertMessageView(message);
         }
+        this.disposables.push(
+            session.onNewMessage.subscribe(this.onNewMessage.bind(this)),
+            session.onStreamingMessage.subscribe(this.onStreamingMessage.bind(this))
+        );
     }
 
     private insertMessageView(message: AgentMessage) {
