@@ -1,0 +1,24 @@
+import * as style from '../gen/styles/app.js';
+
+import { div } from '@ethereon/ein/dom/utils';
+
+const agentronIcon =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="18" fill="none"><path fill="currentColor" d="M5.918.043c.707-.13 1.53.025 2.478.585l.093.056c.05.032.135.087.226.134A.6.6 0 0 0 8.967.9h1.014c.371 0 .617-.176.706-.217.987-.605 1.84-.774 2.569-.64.73.134 1.33.57 1.814 1.16.824 1.002 1.322 2.457 1.564 3.67 1.74.303 2.815.719 2.815 1.178 0 .925-4.354 1.675-9.724 1.675C4.354 7.726 0 6.976 0 6.051c0-.433.958-.829 2.53-1.126.238-1.223.738-2.706 1.574-3.723C4.589.612 5.189.177 5.918.043"/><path fill="currentColor" opacity="0.7" fill-rule="evenodd" d="M16.452 13.22a4.73 4.73 0 0 1-4.73 4.728H7.727a4.73 4.73 0 0 1-4.729-4.728V8.992c1.747.288 4.117.466 6.728.466s4.98-.178 6.727-.466zm-8.765-2.606a.964.964 0 0 0-.964.963v1.184a.964.964 0 0 0 1.928 0v-1.184a.963.963 0 0 0-.964-.963m4.25 0a.964.964 0 0 0-.964.963v1.184a.964.964 0 0 0 1.928 0v-1.184a.964.964 0 0 0-.964-.963" clip-rule="evenodd"/></svg>';
+
+export class AppHeader {
+    readonly container: HTMLElement;
+
+    constructor() {
+        const icon = div({ class: style.app_icon });
+        icon.innerHTML = `<a href="https://github.com/ethereon/agentron/" target="_blank">${agentronIcon}</a>`;
+        icon.title = 'Agentron';
+
+        this.container = div({
+            class: style.app_header,
+            child: div({
+                class: style.app_header_content,
+                children: [icon]
+            })
+        });
+    }
+}

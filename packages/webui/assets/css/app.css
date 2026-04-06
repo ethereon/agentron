@@ -22,24 +22,57 @@ body {
 a {
     text-decoration: none;
 }
+:root {
+    color-scheme: dark;
+    scrollbar-color: var(--scroll-bar-fg) var(--scroll-bar-bg);
+}
 .app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    scrollbar-color: var(--scroll-bar-fg) transparent;
+}
+.app-header {
+    height: 60px;
+    border-bottom: 1px solid var(--app-header-border);
+    display: flex;
+    justify-content: center;
+    width: 100vw;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--bg);
+}
+.app-content, .app-header-content {
     width: 820px;
     max-width: min(calc(100vw - 40px), 820px);
 }
-:root {
-    color-scheme: dark;
-    scrollbar-color: var(--scroll-bar-fg) transparent;
+.app-header-content {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+.app-icon a {
+    color: var(--app-icon-color);
+    transition: color 0.5s ease-in-out;
+}
+.app-icon a:hover {
+    color: var(--app-icon-color-hover);
 }
 :root {
     --bg: #0a0a0a;
     --fg: #d7d8d9;
     --border: #444;
     --border-hover: #EB4C08;
+    --app-header-border: #333;
+    --app-icon-color: #444;
+    --app-icon-color-hover: #FDC023;
     --tool-call-icon-success: #22c55e;
     --tool-call-icon-failed: #ef4444;
     --tool-call-name: #fdba74;
     --tool-call-error-result-fg: #eb6f92;
     --tool-call-success-result-fg: #c6f5c5;
+    --scroll-bar-bg: #222;
     --scroll-bar-fg: #444;
 }
 .at-collapsible {
