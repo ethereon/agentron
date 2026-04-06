@@ -89,7 +89,7 @@ class ContextMeter extends DisposableObject {
                     }
                 }
                 if (!set) {
-                    this.setProgress(0);
+                    this.setUsage(0);
                 }
             }
         });
@@ -107,18 +107,25 @@ class ContextMeter extends DisposableObject {
     }
 
     private setTokenUsage(tokenUsage: TokenUsage) {
-        this.setProgress(tokenUsage.total);
+        this.setUsage(tokenUsage.total);
     }
 
-    private setProgress(usage: number) {
+    private setUsage(usage: number) {
         const max = this.contextWindow;
         if (max == null || max <= 0 || !isFinite(max)) {
-            this.setProgress(0);
-            this.container.title = 'Context usage unavailable';
+            this.setMeterState(0, 'Context window usage unavailable');
             return;
         }
+
         const percentage = Math.round((100 * usage) / max);
-        this.container.style.setProperty('--context-meter-progress', String(percentage));
-        this.container.title = `Context window usage: ${percentage}% (${usage.toLocaleString()} / ${max.toLocaleString()})`;
+        this.setMeterState(
+            percentage,
+            `Context window usage: ${percentage}% (${usage.toLocaleString()} / ${max.toLocaleString()})`
+        );
+    }
+
+    private setMeterState(progress: number, title: string) {
+        this.container.style.setProperty('--context-meter-progress', String(progress));
+        this.container.title = title;
     }
 }
