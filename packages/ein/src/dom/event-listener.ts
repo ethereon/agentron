@@ -12,17 +12,17 @@ export function listenForEvent<T extends HTMLElement, K extends keyof HTMLElemen
 
 // Overload for window
 export function listenForEvent<K extends keyof WindowEventMap>(
-    element: Document,
+    element: Window,
     type: K,
-    listener: (this: Document, ev: WindowEventMap[K]) => any,
+    listener: (this: Window, ev: WindowEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions
 ): Disposable;
 
 // Overload for document
 export function listenForEvent<K extends keyof DocumentEventMap>(
-    element: Window,
+    element: Document,
     type: K,
-    listener: (this: Window, ev: DocumentEventMap[K]) => any,
+    listener: (this: Document, ev: DocumentEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions
 ): Disposable;
 
