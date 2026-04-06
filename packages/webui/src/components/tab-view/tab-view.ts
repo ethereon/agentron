@@ -37,8 +37,16 @@ export class TabView {
             return;
         }
         this._selectedIndex = index;
-        this.container.replaceChildren(this.tabs[index]());
+        this.renderActiveTab();
         this.tabBar?.setSelectedIndex(index);
         this.onSelected?.(index);
+    }
+
+    renderActiveTab(): void {
+        this.container.replaceChildren(this.tabs[this._selectedIndex]());
+    }
+
+    get selectedIndex(): number {
+        return this._selectedIndex;
     }
 }

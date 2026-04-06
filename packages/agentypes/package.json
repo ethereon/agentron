@@ -9,8 +9,7 @@
     "exports": {
         "./*.js": {
             "types": "./dist/*.d.ts",
-            "import": "./dist/*.js",
-            "require": "./dist/*.js"
+            "import": "./dist/*.js"
         }
     },
     "typesVersions": {

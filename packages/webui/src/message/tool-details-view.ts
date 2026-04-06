@@ -64,7 +64,17 @@ class ToolDetailsView implements IToolDetailsView {
             return;
         }
         this.resultView = makeResultView(result);
-        this.tabView?.selectTabAtIndex(1);
+
+        const tabView = this.tabView;
+        if (tabView) {
+            const resultViewIndex = 1;
+            if (tabView.selectedIndex !== resultViewIndex) {
+                tabView.selectTabAtIndex(resultViewIndex);
+            } else {
+                // Force re-render
+                tabView.renderActiveTab();
+            }
+        }
     }
 
     private getArgsView(): HTMLElement {

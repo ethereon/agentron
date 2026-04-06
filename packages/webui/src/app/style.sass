@@ -30,10 +30,41 @@ body
 a
     text-decoration: none
 
+:root
+    color-scheme: dark
+    // Include the bg for the root level scrollbar. Otherwise, the
+    // header's bottom border getting clipped at the scrollbar bounds looks weird.
+    scrollbar-color: $colors.scroll_bar_fg $colors.scroll_bar_bg
+
 .app
+    display: flex
+    flex-direction: column
+    align-items: center
+    scrollbar-color: $colors.scroll_bar_fg transparent
+
+.app-header
+    height: 60px
+    border-bottom: 1px solid $colors.app_header_border
+    display: flex
+    justify-content: center
+    width: 100vw
+    position: sticky
+    top: 0
+    z-index: 1000
+    background: $colors.bg
+
+.app-content, .app-header-content
     width: $max_container_width
     max-width: min(calc(100vw - $(2*h_pad)), $max_container_width)
 
-:root
-    color-scheme: dark
-    scrollbar-color: $colors.scroll_bar_fg transparent
+.app-header-content
+    flex-grow: 1
+    display: flex
+    align-items: center
+
+.app-icon
+    a
+        color: $colors.app_icon_color
+        transition: color 0.5s ease-in-out
+        &:hover
+            color: $colors.app_icon_color_hover
