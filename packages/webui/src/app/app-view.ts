@@ -4,7 +4,7 @@ import { type AppController } from './app-controller.js';
 
 import { div } from '@ethereon/ein/dom/utils';
 import { SessionView } from '../session/session-view.js';
-import { DisposableObject, DisposableSlot } from '@ethereon/ein/disposable';
+import { DisposableObject } from '@ethereon/ein/disposable';
 import { AppHeader } from './app-header.js';
 import { DisposableElementParent } from '@ethereon/ein/dom/disposable';
 

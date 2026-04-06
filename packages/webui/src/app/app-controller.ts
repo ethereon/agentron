@@ -1,12 +1,8 @@
-import { AgentMessage, StreamingMessage } from '@ethereon/agentypes/messages.js';
+import type { AgentMessage } from '@ethereon/agentypes/messages.js';
 import type { SessionMetadata } from '@ethereon/agentypes/session.js';
-import type {
-    MessagesResponse,
-    SessionId,
-    SessionsResponse
-} from '@ethereon/agentypes/web-responses.js';
+import type { SessionId, SessionsResponse } from '@ethereon/agentypes/web-responses.js';
 
-import { DisposableObject, DisposableStore } from '@ethereon/ein/disposable';
+import { DisposableObject } from '@ethereon/ein/disposable';
 import { Observable, ObservableDisposable } from '@ethereon/ein/publisher';
 import { SessionController } from '../session/session-controller.js';
 
