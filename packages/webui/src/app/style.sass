@@ -67,13 +67,17 @@ a
     a
         color: $colors.app_icon_color
         transition: color 0.5s ease-in-out
+        display: block
         &:hover
             color: $colors.app_icon_color_hover
+        svg
+            display: block
 
 .at-context-meter
-    display: flex
-
     --context-meter-progress: 0
+
+    svg
+        display: block // Remove extra space below the svg
 
     .meter-bg
         fill: none

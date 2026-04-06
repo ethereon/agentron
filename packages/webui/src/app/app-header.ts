@@ -48,21 +48,19 @@ class ContextMeter extends DisposableObject {
             })
         );
 
-        const meter = div({});
-        const s = 20;
+        this.container = div({
+            class: style.context_meter
+        });
+
+        const s = 22;
         const c = s / 2;
         const d = s - 4; // Avoid clipping
         const r = d / 2;
-        meter.innerHTML = `
+        this.container.innerHTML = `
 <svg viewBox="0 0 ${s} ${s}" width="${s}" height="${s}" transform="rotate(-90)">
-<circle class="meter-bg" cx="${c}" cy="${c}" r="${r}" />
-<circle class="meter-progress" cx="${c}" cy="${c}" r="${r}" pathLength="100" />
+<circle class="${style.meter_bg}" cx="${c}" cy="${c}" r="${r}" />
+<circle class="${style.meter_progress}" cx="${c}" cy="${c}" r="${r}" pathLength="100" />
   </svg>`;
-
-        this.container = div({
-            class: style.context_meter,
-            child: meter
-        });
     }
 
     private setActiveSession(session: SessionController | undefined) {
