@@ -17,7 +17,7 @@ export class AppView extends DisposableObject {
         super();
         this.header = new AppHeader();
 
-        const sessionParent = new DisposableElementParent<SessionView>();
+        const sessionParent = this.disposables.add(new DisposableElementParent<SessionView>());
         sessionParent.container.classList.add(style.app_content);
 
         this.container = div({
