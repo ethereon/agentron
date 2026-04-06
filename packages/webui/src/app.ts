@@ -1,10 +1,8 @@
+import { AppController } from './app/app-controller.js';
 import { AppView } from './app/app-view.js';
 
-(() => {
-    const appView = new AppView();
-    const appRoot = document.getElementById('app-root');
-    if (!appRoot) {
-        throw new Error('App root element not found');
-    }
-    appRoot.appendChild(appView.container);
-})();
+const app = new AppController();
+(window as any)._app = app;
+
+const appView = new AppView(app);
+document.body.appendChild(appView.container);

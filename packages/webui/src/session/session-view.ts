@@ -1,82 +1,38 @@
 import * as style from '../gen/styles/session.js';
 
-import { AsyncQueue } from '@ethereon/ein/async';
-import { DisposableObject } from '@ethereon/ein/disposable';
-
 import type { AgentMessage, StreamingMessage } from '@ethereon/agentypes/messages.js';
-import type { MessagesResponse } from '@ethereon/agentypes/web-responses.js';
 
+import { DisposableObject } from '@ethereon/ein/disposable';
 import {
     AgentMessageView,
     AssistantMessageView,
     renderAgentMessage
 } from '../message/message-view.js';
 import { div } from '@ethereon/ein/dom/utils';
-import { app } from '../app/app-controller.js';
+import { SessionController } from './session-controller.js';
 
 export class SessionView extends DisposableObject {
     readonly container: HTMLElement;
-    readonly queue = new AsyncQueue();
 
-    private sessionId?: string;
     private messageViewsById = new Map<string, AgentMessageView>();
     private lastMessageView?: AgentMessageView;
-    private eventSource?: EventSource;
 
-    constructor() {
+    constructor(session: SessionController) {
         super();
         this.container = div({
             class: style.session_view
         });
-        this.disposables.push(
-            app.activeSession.subscribe(sessionId => {
-                if (sessionId != null) {
-                    this.setSession(sessionId);
-                }
-            }),
-
-            {
-                dispose: () => this.discardEventSource()
-            }
-        );
+        this.setup(session);
     }
 
-    async setSession(sessionId: string) {
-        this.sessionId = sessionId;
-        this.queue.enqueue(async () => {
-            if (this.sessionId !== sessionId) {
-                return;
-            }
-            await this.prepareForSession(sessionId);
-        });
-    }
-
-    private async prepareForSession(sessionId: string) {
-        this.discardEventSource();
-        const response = await fetch(`/api/messages?session_id=${sessionId}`);
-        const messages = (await response.json()) as MessagesResponse;
-
-        // Clear prior views and state.
-        this.messageViewsById.clear();
-        this.lastMessageView = undefined;
-        this.container.replaceChildren();
-
-        // Insert existing messages.
-        if (this.sessionId !== sessionId) {
+    private async setup(session: SessionController): Promise<void> {
+        const messages = await session.sessionMessages;
+        if (this.isDisposed) {
             return;
         }
         for (const message of messages) {
             this.insertMessageView(message);
         }
-
-        // Setup streaming updates.
-        this.eventSource = new EventSource(`/api/events?session_id=${sessionId}`);
-        this.eventSource.addEventListener('new_message', event =>
-            this.onNewMessage(JSON.parse(event.data))
-        );
-        this.eventSource.addEventListener('streaming_message', event =>
-            this.onStreamingMessage(JSON.parse(event.data))
-        );
     }
 
     private insertMessageView(message: AgentMessage) {
@@ -124,12 +80,5 @@ export class SessionView extends DisposableObject {
             );
         }
         view.applyStreamingUpdate(message);
-    }
-
-    private discardEventSource() {
-        if (this.eventSource) {
-            this.eventSource.close();
-            this.eventSource = undefined;
-        }
     }
 }
