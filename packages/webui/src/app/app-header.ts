@@ -24,13 +24,6 @@ export class AppHeader extends DisposableObject {
                 children: [appIcon, sessionSelector.container, contextMeter.container]
             })
         });
-
-        this.disposables.add(
-            app.sessions.subscribe(sessions => {
-                if (sessions.length === 0) {
-                }
-            })
-        );
     }
 }
 
