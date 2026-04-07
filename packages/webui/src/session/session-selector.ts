@@ -122,7 +122,7 @@ class SessionSelector extends DisposableObject {
         }
         if (selectedSession) {
             const newSelection = this.popover.querySelector(
-                `[data-session-id="${selectedSession.id}"]`
+                `[data-session-id="${CSS.escape(selectedSession.id)}"]`
             );
             if (newSelection) {
                 newSelection.classList.add(style.selected);
