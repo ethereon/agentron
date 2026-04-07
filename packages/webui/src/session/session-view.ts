@@ -13,6 +13,7 @@ import { SessionController } from './session-controller.js';
 
 export class SessionView extends DisposableObject {
     readonly container: HTMLElement;
+    readonly initialRenderComplete: Promise<void>;
 
     private messageViewsById = new Map<string, AgentMessageView>();
     private lastMessageView?: AgentMessageView;
@@ -22,7 +23,7 @@ export class SessionView extends DisposableObject {
         this.container = div({
             class: style.session_view
         });
-        this.setup(session);
+        this.initialRenderComplete = this.setup(session);
     }
 
     private async setup(session: SessionController): Promise<void> {
