@@ -99,7 +99,6 @@ class SessionSelector extends DisposableObject {
             ]
         });
         item.onmousedown = (ev: MouseEvent) => {
-            ev.preventDefault();
             ev.stopImmediatePropagation();
             this.selectSession(session, true);
         };
