@@ -58,14 +58,14 @@ class SessionSelector extends DisposableObject {
                 }
             }),
 
-            this.selectedSession.subscribe(this.syncToSelectedSession.bind(this))
+            this.selectedSession.subscribe(() => this.syncToSelectedSession())
         );
 
         popover.popover = 'auto';
         document.body.appendChild(popover);
         popover.showPopover();
 
-        requestAnimationFrame(this.syncToSelectedSession.bind(this));
+        requestAnimationFrame(() => this.syncToSelectedSession('center'));
     }
 
     private renderSessionItem(session: SessionItem, index: number): HTMLElement {
@@ -114,7 +114,7 @@ class SessionSelector extends DisposableObject {
         }
     }
 
-    private syncToSelectedSession(): void {
+    private syncToSelectedSession(position: ScrollLogicalPosition = 'nearest'): void {
         const selectedSession = this.selectedSession.value;
         const currentSelection = this.popover.querySelector(`.${style.selected}`);
         if (currentSelection) {
@@ -126,7 +126,7 @@ class SessionSelector extends DisposableObject {
             );
             if (newSelection) {
                 newSelection.classList.add(style.selected);
-                newSelection.scrollIntoView({ block: 'nearest' });
+                newSelection.scrollIntoView({ block: position });
                 (newSelection as HTMLElement).focus();
             }
         }
