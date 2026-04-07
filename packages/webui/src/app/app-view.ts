@@ -38,6 +38,8 @@ export class AppView extends DisposableObject {
                 requestAnimationFrame(() => {
                     if (!this.isDisposed && app.activeSession.value?.id === session.id) {
                         sessionParent.content = sessionView;
+                    } else {
+                        sessionView.dispose();
                     }
                 });
             })
