@@ -1,7 +1,6 @@
-import { SessionId } from '@ethereon/agentypes/web-responses.js';
 import { AgentMessage, StreamingMessage } from '@ethereon/agentypes/messages.js';
 import { SessionMetadata } from '@ethereon/agentypes/session.js';
-import { MessagesResponse } from '@ethereon/agentypes/web-responses.js';
+import { SessionId, MessagesResponse } from '@ethereon/agentypes/web-responses.js';
 import { DisposableObject } from '@ethereon/ein/disposable';
 import { listenForEvent } from '@ethereon/ein/dom/event-listener';
 import { Observable } from '@ethereon/ein/publisher';
