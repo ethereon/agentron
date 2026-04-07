@@ -1,3 +1,6 @@
+@use colors
+@use typography
+
 $session_item_gap: 1rem
 
 .at-session-view
@@ -6,3 +9,51 @@ $session_item_gap: 1rem
     gap: $session_item_gap
     overflow: hidden
     padding: 20px 0
+
+.x-session-selector-popover
+    margin: auto
+
+    width: 400px
+    height: 500px
+    background: $colors.popover_bg
+    border: 1px solid $colors.popover_border
+    border-radius: 10px
+    padding: 10px
+
+    display: flex
+    flex-direction: column
+
+.x-session-selector-item
+    display: flex
+    flex-direction: column
+    border-radius: 5px
+    padding: 5px
+    gap: 5px
+    user-select: none
+    outline: none
+
+    &.selected
+        background: $colors.popover_accent
+
+    .title-row
+        display: flex
+        align-items: center
+        gap: 10px
+
+    .id
+        font-family: $typography.mono_font
+        font-size: 0.85rem
+        opacity: 0.7
+        user-select: text
+        flex-shrink: 0
+
+    .title
+        white-space: nowrap
+        overflow: hidden
+        text-overflow: ellipsis
+        cursor: pointer
+        flex-grow: 1
+
+    .created-at
+        font-size: 0.85rem
+        opacity: 0.7

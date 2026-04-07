@@ -26,8 +26,22 @@ export class AppView extends DisposableObject {
         });
 
         this.disposables.add(
-            app.activeSession.subscribe(session => {
-                sessionParent.content = session ? new SessionView(session) : undefined;
+            app.activeSession.subscribe(async session => {
+                if (session == null) {
+                    sessionParent.content = undefined;
+                    return;
+                }
+                // Swap in the new session view after it finishes the initial
+                // render to avoid jank/flickering.
+                const sessionView = new SessionView(session);
+                await sessionView.initialRenderComplete;
+                requestAnimationFrame(() => {
+                    if (!this.isDisposed && app.activeSession.value?.id === session.id) {
+                        sessionParent.content = sessionView;
+                    } else {
+                        sessionView.dispose();
+                    }
+                });
             })
         );
     }

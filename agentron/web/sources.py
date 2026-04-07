@@ -15,10 +15,13 @@ class SerializedSessionSource(SessionSource):
         self.path = path
         self._messages: list[AgentMessage] | None = None
         self._header: SessionHeader | None = None
+        self._metadata: SessionMetadata | None = None
 
     @property
     def metadata(self) -> SessionMetadata:
-        return self.header['metadata']
+        if self._metadata is None:
+            self._metadata = self._process_metadata(self.header['metadata'])
+        return self._metadata
 
     @property
     def session_id(self) -> str:
@@ -37,3 +40,15 @@ class SerializedSessionSource(SessionSource):
         if self._header is None:
             self._header = read_session_data(self.path, header_only=True).header
         return self._header
+
+    def _process_metadata(self, metadata: SessionMetadata) -> SessionMetadata:
+        if metadata.get('created') is None:
+            # If created timestamp is missing,
+            # use the file's creation time as a fallback.
+            stat = self.path.stat()
+            try:
+                metadata['created'] = int(stat.st_birthtime * 1000)
+            except AttributeError:
+                # st_birthtime may not be available on all platforms.
+                metadata['created'] = int(stat.st_ctime * 1000)
+        return metadata
