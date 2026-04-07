@@ -13,3 +13,6 @@ export const $var_tool_call_name = "var(--tool-call-name)";
 export const $var_tool_call_error_result_fg = "var(--tool-call-error-result-fg)";
 export const $var_tool_call_success_result_fg = "var(--tool-call-success-result-fg)";
 export const $var_context_meter = "var(--context-meter)";
+export const $var_popover_bg = "var(--popover-bg)";
+export const $var_popover_border = "var(--popover-border)";
+export const $var_popover_accent = "var(--popover-accent)";

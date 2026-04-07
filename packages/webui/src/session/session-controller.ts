@@ -1,3 +1,4 @@
+import { SessionId } from '@ethereon/agentypes/web-responses.js';
 import { AgentMessage, StreamingMessage } from '@ethereon/agentypes/messages.js';
 import { SessionMetadata } from '@ethereon/agentypes/session.js';
 import { MessagesResponse } from '@ethereon/agentypes/web-responses.js';
@@ -5,18 +6,25 @@ import { DisposableObject } from '@ethereon/ein/disposable';
 import { listenForEvent } from '@ethereon/ein/dom/event-listener';
 import { Observable } from '@ethereon/ein/publisher';
 
+export interface SessionItem {
+    id: SessionId;
+    metadata: SessionMetadata;
+}
+
 export class SessionController extends DisposableObject {
+    readonly id: SessionId;
+    readonly metadata: SessionMetadata;
+
     readonly onNewMessage = new Observable<AgentMessage>(this);
     readonly onStreamingMessage = new Observable<StreamingMessage>(this);
 
     // Completed messages
     readonly sessionMessages: Promise<AgentMessage[]>;
 
-    constructor(
-        readonly id: string,
-        readonly metadata: SessionMetadata
-    ) {
+    constructor(item: Readonly<SessionItem>) {
         super();
+        this.id = item.id;
+        this.metadata = item.metadata;
         this.sessionMessages = this.fetchMessages();
     }
 

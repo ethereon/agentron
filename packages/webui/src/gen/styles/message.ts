@@ -1,4 +1,5 @@
 export const assistant_message_container = 'at-assistant-message-container';
+export const json_tree_primitive = 'at-json-tree-primitive';
 export const message_preview = 'at-message-preview';
 export const message_text = 'at-message-text';
 export const message_title = 'at-message-title';

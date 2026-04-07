@@ -9,8 +9,14 @@ $h_pad: 20px
     margin: 0
     padding: 0
 
+:root
+    color-scheme: dark
+
 html
     scrollbar-gutter: stable
+    // Include the bg for the root level scrollbar. Otherwise, the
+    // header's bottom border getting clipped at the scrollbar bounds looks weird.
+    scrollbar-color: $colors.scroll_bar_fg $colors.scroll_bar_bg
 
 body
 
@@ -26,21 +32,15 @@ body
     font-family: $typography.ui_font, system-ui, -apple-system, Segoe UI, Roboto, sans-serif
     overscroll-behavior-x: none
     text-wrap: pretty
+    scrollbar-color: $colors.scroll_bar_fg transparent
 
 a
     text-decoration: none
-
-:root
-    color-scheme: dark
-    // Include the bg for the root level scrollbar. Otherwise, the
-    // header's bottom border getting clipped at the scrollbar bounds looks weird.
-    scrollbar-color: $colors.scroll_bar_fg $colors.scroll_bar_bg
 
 .at-app
     display: flex
     flex-direction: column
     align-items: center
-    scrollbar-color: $colors.scroll_bar_fg transparent
 
 .at-app-header
     height: 60px
@@ -63,15 +63,15 @@ a
     gap: 20px
     align-items: center
 
-.at-app-icon
-    a
-        color: $colors.app_icon_color
-        transition: color 0.5s ease-in-out
+.at-app-header-icon-button
+    color: $colors.app_icon_color
+    transition: color 0.5s ease-in-out
+    cursor: pointer
+    display: block
+    &:hover
+        color: $colors.app_icon_color_hover
+    svg
         display: block
-        &:hover
-            color: $colors.app_icon_color_hover
-        svg
-            display: block
 
 .at-context-meter
     --context-meter-progress: 0

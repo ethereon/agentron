@@ -1,2 +1,9 @@
 export const session_view = 'at-session-view';
+export const created_at = 'created-at';
+export const id = 'id';
+export const selected = 'selected';
+export const title = 'title';
+export const title_row = 'title-row';
+export const x_session_selector_item = 'x-session-selector-item';
+export const x_session_selector_popover = 'x-session-selector-popover';
 export const $session_item_gap = '1rem';
