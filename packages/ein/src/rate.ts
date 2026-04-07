@@ -53,7 +53,7 @@ export function leadingThrottle<T extends (...args: any[]) => any>(
     };
 }
 
-// Invoke `func` immediately` and then coalesces and schedules any intermediate invocations
+// Invoke `func` immediately and then coalesces and schedules any intermediate invocations
 // to be spaced out by `delayMilliseconds` (unlike `leadingThrottle`, which entirely ignores
 // any intermediate invocations).
 export function spacedThrottle(delayMilliseconds: number, func: NullaryFunc): NullaryFunc {
