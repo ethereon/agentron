@@ -45,6 +45,10 @@ class SerializedSessionSource(SessionSource):
         if metadata.get('created') is None:
             # If created timestamp is missing,
             # use the file's creation time as a fallback.
-            ctime = self.path.stat().st_birthtime
-            metadata['created'] = int(ctime * 1000)
+            stat = self.path.stat()
+            try:
+                metadata['created'] = int(stat.st_birthtime * 1000)
+            except AttributeError:
+                # st_birthtime may not be available on all platforms.
+                metadata['created'] = int(stat.st_ctime * 1000)
         return metadata
