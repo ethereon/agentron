@@ -7,7 +7,7 @@ name = "agentron"
 version = "0.1.0"
 description = "A Python library for building AI agents."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = "MIT"
 authors = [{ name = "Saumitro Dasgupta", email = "sd@cs.stanford.edu" }]
 
