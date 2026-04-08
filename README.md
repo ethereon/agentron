@@ -164,9 +164,9 @@ The following are supported:
 
 Agentron includes a collection of built-in tools under the `agentron.kit` submodule. These currently include:
 
-- Filesystem I/O: `read_file`, `write_file`, `apply_patch`
-- Shell calls: `bash`, `git`, `grep`
-- A stateful Python REPL for agents
+- [Filesystem I/O](agentron/kit/io.py): `read_file`, `write_file`, `apply_patch`
+- [Shell calls](agentron/kit/shell.py): `bash`, `git`, `grep`
+- A stateful [Python REPL for agents](agentron/kit/repl.py)
 
 The built-in `agentron code` command provides a minimal coding agent implementation built using these tools.
 
