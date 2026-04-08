@@ -51,7 +51,7 @@ def _is_union(tp: Any) -> bool:
     return False
 
 
-def _is_optional(tp: Any) -> 'tuple[bool, Any]':
+def _is_optional(tp: Any) -> tuple[bool, Any]:
     """
     Return (is_optional, inner_type).
     Handles Optional[X], Union[X, None], and X | None (PEP 604).
