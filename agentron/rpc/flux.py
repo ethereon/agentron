@@ -10,7 +10,7 @@ from agentron.types.message import AssistantMessage, StreamingMessage
 from agentron.types.core import LLMBackend, ToolSchema, StreamingMessageHandler
 from agentron.model import Model
 from agentron.rpc.client import JsonRpcClient, JsonRpcError
-from agentron.rpc.utils import get_safe_socket_path
+from agentron.rpc.utils import get_safe_socket_path, detect_node_js
 from agentron.rpc import api
 from agentron.path import get_flux_path
 
@@ -139,7 +139,7 @@ class FluxProcess:
 
         logger.debug(f'Starting Flux process with socket path: {self.socket_path}')
         self.process = await asyncio.create_subprocess_exec(
-            'node',
+            detect_node_js(min_version=20),
             str(get_flux_path()),
             'rpc',
             '--ipc',

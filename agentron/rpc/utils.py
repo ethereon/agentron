@@ -1,8 +1,13 @@
 import os
+import re
 import sys
 import time
 import uuid
+import shutil
 import tempfile
+import subprocess
+
+from pathlib import Path
 
 
 def get_safe_socket_path(name: str) -> str:
@@ -80,3 +85,58 @@ def get_safe_socket_path(name: str) -> str:
         raise ValueError(f'Cannot construct a socket path within {MAX_BYTES} bytes. Got {final_len} bytes: {candidate!r}')
 
     return candidate
+
+
+def detect_node_js(min_version: int) -> str:
+    """
+    Detect a Node.js executable and ensure its major version is >= min_version.
+
+    Searches for common executable names in a cross-platform way:
+    - node
+    - nodejs
+
+    Returns:
+        Absolute path to the detected executable.
+
+    Raises:
+        ValueError: if min_version is not a positive integer.
+        FileNotFoundError: if no Node.js executable is found.
+        RuntimeError: if the executable cannot be queried for its version,
+                      or if its major version is too old.
+    """
+    if not isinstance(min_version, int) or min_version < 1:
+        raise ValueError(f'min_version must be a positive integer, got {min_version!r}')
+
+    candidates = ('node', 'nodejs')
+    checked: list[str] = []
+
+    for name in candidates:
+        exe = shutil.which(name)
+        if not exe:
+            checked.append(name)
+            continue
+
+        try:
+            result = subprocess.run(
+                [exe, '--version'],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+        except (OSError, subprocess.SubprocessError) as exc:
+            raise RuntimeError(f'Found Node.js candidate at {exe!r}, but could not run it') from exc
+
+        version_text = (result.stdout or result.stderr).strip()
+        # Typical output: "v20.11.1"
+        match = re.search(r'\bv?(\d+)\.(\d+)\.(\d+)\b', version_text)
+        if not match:
+            raise RuntimeError(f'Found executable at {exe!r}, but could not parse Node.js version from {version_text!r}')
+
+        major = int(match.group(1))
+        if major < min_version:
+            raise RuntimeError(f'Node.js {major} found at {exe!r}, but version {min_version}+ is required')
+
+        return str(Path(exe).resolve())
+
+    raise FileNotFoundError(f'Node.js executable not found. Checked: {", ".join(checked)}')
