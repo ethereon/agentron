@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import * as child_process from 'child_process';
 
 const kProjectRoot = path.resolve(import.meta.dirname, '..');
-const kOutputDir = path.join(kProjectRoot, 'dist');
+const kOutputDir = path.join(kProjectRoot, 'dist', 'bundle');
 
 async function generateStyles() {
     const { promise, resolve, reject } = Promise.withResolvers();
@@ -71,7 +71,8 @@ async function build() {
         esbuild.build({
             entryPoints: [path.join(kProjectRoot, 'src', 'app.ts')],
             bundle: true,
-            outfile: path.join(kOutputDir, 'agentron-webui.js')
+            outfile: path.join(kOutputDir, 'agentron-webui.js'),
+            sourcemap: 'linked'
         })
     ];
     await Promise.all(tasks);
