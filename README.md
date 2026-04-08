@@ -57,7 +57,7 @@ async def main():
         # The latest model details are auto-fetched.
         # The API key (if not explicitly passed in here) is automatically resolved
         # from environment vars or ~/.agentron/auth.json
-        model='openai:gpt-5.4,
+        model='openai:gpt-5.4',
         # Display agent activity in the terminal
         terminal=True,
     )
