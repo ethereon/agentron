@@ -60,7 +60,7 @@ def main():
     code_parser.add_argument(
         '--model',
         required=True,
-        help='Model to use for the coding agent (e.g.: openai-codex/gpt-5.4).',
+        help='Model to use for the coding agent (e.g.: openai-codex:gpt-5.4).',
     )
     code_parser.add_argument(
         '--user',

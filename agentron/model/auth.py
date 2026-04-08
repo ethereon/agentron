@@ -25,9 +25,9 @@ def resolve_api_key(model: Model) -> ApiKeySource | None:
     auth_table = maybe_load_api_key_table()
     if auth_table is None:
         return None
-    model_specific = auth_table.get(f'{model["provider"]}/{model["id"]}')
-    # Fine-grained <provider/model> keys take precedence over provider-level keys
-    # e.g.: zai-coding-plan/glm-4.7
+    model_specific = auth_table.get(f'{model["provider"]}:{model["id"]}')
+    # Fine-grained <provider:model> keys take precedence over provider-level keys
+    # e.g.: zai-coding-plan:glm-4.7
     if model_specific:
         return model_specific
     # Provider-level

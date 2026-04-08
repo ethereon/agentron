@@ -28,13 +28,13 @@ def get_model(model: str, provider: str | None = None) -> Model:
     Gets a model from an internal set of auto-updated repositories.
 
     You can either specify a fully-qualified mode name:
-        get_model('anthropic/claude-opus-4-6')
+        get_model('anthropic:claude-opus-4-6')
     Or equivalently:
         get_model(model='claude-opus-4-6', provider='anthropic')
     """
     if provider is None:
-        if '/' in model:
-            provider, model = model.split('/', 1)
+        if ':' in model:
+            provider, model = model.split(':', 1)
         else:
             raise ValueError('Provider must be specified if the model name is not fully qualified.')
 
