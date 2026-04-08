@@ -12,8 +12,11 @@ license = "MIT"
 authors = [{ name = "Saumitro Dasgupta", email = "sd@cs.stanford.edu" }]
 
 
-[tool.setuptools]
-packages = ["agentron"]
+[tool.setuptools.packages.find]
+include = ["agentron*"]
+
+[tool.setuptools.package-data]
+agentron = ["dist/flux/**/*", "dist/webui/**/*"]
 
 [tool.ruff]
 line-length = 200
