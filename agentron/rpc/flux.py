@@ -6,15 +6,13 @@ import signal
 import asyncio
 import logging
 
-from pathlib import Path
-
 from agentron.types.message import AssistantMessage, StreamingMessage
 from agentron.types.core import LLMBackend, ToolSchema, StreamingMessageHandler
 from agentron.model import Model
 from agentron.rpc.client import JsonRpcClient, JsonRpcError
 from agentron.rpc.utils import get_safe_socket_path
 from agentron.rpc import api
-from agentron.path import get_flux_root
+from agentron.path import get_flux_path
 
 logger = logging.getLogger(__name__)
 
@@ -195,7 +193,3 @@ class FluxExistingProcess:
 
     async def close(self):
         pass
-
-
-def get_flux_path() -> Path:
-    return get_flux_root() / 'main.js'

@@ -1,6 +1,11 @@
 import inspect
 
 from pathlib import Path
+from functools import cache
+
+
+def get_module_path() -> Path:
+    return Path(__file__).resolve().parent
 
 
 def get_data_dir() -> Path:
@@ -16,20 +21,40 @@ def get_auth_table_path() -> Path:
     return get_data_dir() / 'auth.json'
 
 
-def get_js_packages_root() -> Path:
-    return Path(__file__).resolve().parent.parent / 'packages'
+def maybe_get_dist_path(package_name: str) -> Path | None:
+    # Production: agentron/dist/<package>
+    module_root = get_module_path()
+    dist_pkg_path = module_root / 'dist' / package_name
+    return dist_pkg_path if dist_pkg_path.exists() else None
 
 
-def get_flux_root() -> Path:
-    return get_js_packages_root() / 'flux' / 'dist'
+def get_dev_package_path(package_name: str) -> Path:
+    module_root = get_module_path()
+    return module_root.parent / 'packages' / package_name
 
 
+@cache
+def get_flux_path() -> Path:
+    dist_path = maybe_get_dist_path('flux')
+    return (
+        # Production
+        dist_path / 'agentron-flux.js'
+        if dist_path is not None
+        # Dev (non-bundled)
+        else get_dev_package_path('flux') / 'dist' / 'main.js'
+    )
+
+
+@cache
 def get_webui_root() -> Path:
-    return get_js_packages_root() / 'webui' / 'dist'
-
-
-def get_module_path() -> Path:
-    return Path(__file__).resolve().parent
+    dist_path = maybe_get_dist_path('webui')
+    return (
+        # Production
+        dist_path
+        if dist_path is not None
+        # Dev
+        else get_dev_package_path('webui') / 'dist' / 'bundle'
+    )
 
 
 def resolve_external_caller_path() -> Path:
