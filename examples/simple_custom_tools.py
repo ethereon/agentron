@@ -1,6 +1,6 @@
 import asyncio
 
-from agentron import get_model, make_agent
+from agentron import make_agent
 
 
 def get_current_city() -> str:
@@ -20,14 +20,13 @@ def get_calvinball_team_name(city: str) -> str:
 
 
 async def main():
-    model = get_model(provider='openrouter', model='openrouter/free')
     agent = make_agent(
         system_prompt="You are a helpful assistant. Use the available tools to answer the user's question.",
         tools=[
             get_current_city,
             get_calvinball_team_name,
         ],
-        model=model,
+        model='openrouter:openrouter/free',
         terminal=True,
     )
     response = await agent.ask('What is the name of the local Calvinball team in my city?')
