@@ -1,7 +1,5 @@
 name: Publish
-on:
-    push:
-        tags: ['*']
+on: [push, workflow_dispatch]
 jobs:
     build:
         name: Build distribution
