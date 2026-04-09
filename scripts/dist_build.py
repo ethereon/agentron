@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import re
 import shutil
 import subprocess
 import sys
@@ -63,11 +62,8 @@ COPY_RULES: tuple[CopyRule, ...] = (
 )
 
 
-VERSION_PATTERN = re.compile(r'(?m)^version = "([^"]+)"$')
-
-
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description='Build debug and production wheels into dist/.')
+    parser = argparse.ArgumentParser(description='Build a wheel into dist/.')
     parser.add_argument(
         '--dirty',
         action='store_true',
@@ -87,29 +83,15 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix='agentron-dist-build-') as temp_dir:
         staging_root = Path(temp_dir) / 'staging'
-        debug_out_dir = Path(temp_dir) / 'wheels' / 'debug'
-        production_out_dir = Path(temp_dir) / 'wheels' / 'production'
+        wheel_out_dir = Path(temp_dir) / 'wheels'
 
         stage_source_tree(staging_root)
         remove_transient_files(staging_root)
 
-        pyproject_path = staging_root / 'pyproject.toml'
-        original_version = get_project_version(pyproject_path)
-        debug_version = make_debug_version(original_version)
-
-        # Build debug wheel (with source maps)
-        set_project_version(pyproject_path, debug_version)
-        debug_wheels = build_wheel(staging_root, debug_out_dir)
-
-        # Build production wheel
-        clean_wheel_build_artifacts(staging_root)
-        set_project_version(pyproject_path, original_version)
-        remove_source_maps(staging_root)
-        remove_transient_files(staging_root)
-        production_wheels = build_wheel(staging_root, production_out_dir)
+        wheels = build_wheel(staging_root, wheel_out_dir)
 
         DIST_DIR.mkdir(parents=True, exist_ok=True)
-        copy_wheels_to_dist(debug_wheels + production_wheels)
+        copy_wheels_to_dist(wheels)
 
     print(f'Built {len(list(DIST_DIR.glob("*.whl")))} wheel(s) into {DIST_DIR}')
     return 0
@@ -174,53 +156,6 @@ def remove_transient_files(root: Path) -> None:
                 shutil.rmtree(path)
             else:
                 path.unlink()
-
-
-def clean_wheel_build_artifacts(root: Path) -> None:
-    paths_to_remove = [root / 'build']
-    paths_to_remove.extend(root.glob('*.egg-info'))
-
-    removed = 0
-    for path in paths_to_remove:
-        if not path.exists():
-            continue
-        if path.is_dir():
-            shutil.rmtree(path)
-        else:
-            path.unlink()
-        removed += 1
-
-    print(f'Removed {removed} wheel build artifact path(s) before production build')
-
-
-def remove_source_maps(root: Path) -> None:
-    removed = 0
-    for path in root.rglob('*.js.map'):
-        path.unlink()
-        removed += 1
-    print(f'Removed {removed} source map file(s) before production build')
-
-
-def get_project_version(pyproject_path: Path) -> str:
-    content = pyproject_path.read_text(encoding='utf-8')
-    match = VERSION_PATTERN.search(content)
-    if match is None:
-        raise ValueError(f'Unable to locate version in {pyproject_path}')
-    return match.group(1)
-
-
-def set_project_version(pyproject_path: Path, version: str) -> None:
-    content = pyproject_path.read_text(encoding='utf-8')
-    updated_content, replacements = VERSION_PATTERN.subn(f'version = "{version}"', content, count=1)
-    if replacements != 1:
-        raise ValueError(f'Unable to update version in {pyproject_path}')
-    pyproject_path.write_text(updated_content, encoding='utf-8')
-
-
-def make_debug_version(version: str) -> str:
-    if '+' in version:
-        return f'{version}.debug'
-    return f'{version}+debug'
 
 
 def build_wheel(source_dir: Path, output_dir: Path) -> list[Path]:
