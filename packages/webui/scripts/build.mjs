@@ -6,7 +6,31 @@ import * as child_process from 'child_process';
 const kProjectRoot = path.resolve(import.meta.dirname, '..');
 const kOutputDir = path.join(kProjectRoot, 'dist', 'bundle');
 
+async function isMayoAvailable() {
+    const { promise, resolve } = Promise.withResolvers();
+
+    const proc = child_process.spawn('python3', ['-c', 'import mayo'], {
+        stdio: 'ignore'
+    });
+
+    proc.on('close', code => {
+        resolve(code === 0);
+    });
+
+    proc.on('error', () => {
+        resolve(false);
+    });
+
+    return promise;
+}
+
 async function generateStyles() {
+    const mayoAvailable = await isMayoAvailable();
+    if (!mayoAvailable) {
+        console.warn('[WARNING] Skipping style generation (mayo not found).');
+        return;
+    }
+
     const { promise, resolve, reject } = Promise.withResolvers();
 
     const proc = child_process.spawn(
@@ -40,13 +64,8 @@ async function generateStyles() {
         reject(err);
     });
 
-    try {
-        await promise;
-        console.log('Styles generated successfully.');
-    } catch (err) {
-        // Log the error but don't treat as fatal.
-        console.error(`Error generating styles:\n${err.message}`);
-    }
+    await promise;
+    console.log('Styles generated successfully.');
 }
 
 async function build() {
