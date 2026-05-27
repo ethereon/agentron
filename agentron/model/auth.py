@@ -19,7 +19,7 @@ def _get_model_api_key_env_vars(model: Model) -> Iterable[str]:
     if candidates:
         yield from candidates
     else:
-        # No known env vars exists.
+        # No known env vars exist.
         # Try a reasonable default based on the provider name.
         yield f'{model["provider"].upper()}_API_KEY'
 
