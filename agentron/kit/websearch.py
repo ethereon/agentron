@@ -147,16 +147,14 @@ class BraveWebSearch:
             'User-Agent': user_agent,
         }
 
-    def __call__(self, query: str, count: int | None = None, offset: int | None = None) -> str:
+    def __call__(self, query: str, count: int = 20, offset: int = 0) -> str:
         """
-        Search the web with Brave Search and return LLM-friendly results.
+        Search the web for a given query and return the results.
 
         Args:
-                query: The user's search query term.
-                count: Number of web results to request. [default: 20]
-                offset: Zero-based page offset for pagination. [default: 0]
-        Returns:
-                A formatted summary of the Brave Search response.
+            query: The user's search query term.
+            count: Optional number of web results to request. [default: 20]
+            offset: Optional zero-based page offset for pagination. [default: 0]
         """
         params = dict(self._query_defaults)
         params['q'] = query
