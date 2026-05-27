@@ -51,9 +51,8 @@ def test_resolve_api_key_prefers_colon_delimited_auth_key() -> None:
     model = _make_model()
 
     with (
-        patch('agentron.model.auth.os.getenv', return_value=None),
         patch(
-            'agentron.model.auth.maybe_load_api_key_table',
+            'agentron.auth.load_auth_table',
             return_value={
                 'openrouter:openrouter/free': 'new-key',
                 'openrouter/openrouter/free': 'old-key',

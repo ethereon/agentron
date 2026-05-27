@@ -1,49 +1,34 @@
-import os
-import json
-import logging
+from typing import Iterable
 
 from agentron.types.model import Model
 from agentron.rpc.api import ApiKeySource
-from agentron.path import get_auth_table_path
-
-logger = logging.getLogger(__name__)
+from agentron.auth import resolve_auth_value
 
 
 def resolve_api_key(model: Model) -> ApiKeySource | None:
+    return resolve_auth_value(
+        env_var_names=_get_model_api_key_env_vars(model),
+        table_keys=_get_model_auth_table_keys(model),
+    )
+
+
+def _get_model_api_key_env_vars(model: Model) -> Iterable[str]:
     # Check model-specific environment variables
     # e.g.: OPENROUTER_API_KEY
-    candidates = model.get('auth_env_vars', [])
-    # If no known env vars exist, auto-add a reasonable default based on the provider name
-    if not candidates:
-        candidates.append(f'{model["provider"].upper()}_API_KEY')
-    for env_var_name in candidates:
-        value = os.getenv(env_var_name)
-        if value:
-            return value
+    candidates = model.get('auth_env_vars')
+    if candidates:
+        yield from candidates
+    else:
+        # No known env vars exist.
+        # Try a reasonable default based on the provider name.
+        yield f'{model["provider"].upper()}_API_KEY'
 
-    # Check ~/.agentron/auth.json
-    auth_table = maybe_load_api_key_table()
-    if auth_table is None:
-        return None
-    model_specific = auth_table.get(f'{model["provider"]}:{model["id"]}')
+
+def _get_model_auth_table_keys(model: Model) -> Iterable[str]:
     # Fine-grained <provider:model> keys take precedence over provider-level keys
     # e.g.: zai-coding-plan:glm-4.7
-    if model_specific:
-        return model_specific
+    yield f'{model["provider"]}:{model["id"]}'
+
     # Provider-level
     # e.g.: zai-coding-plan
-    provider_specific = auth_table.get(model['provider'])
-    if provider_specific:
-        return provider_specific
-    return None
-
-
-def maybe_load_api_key_table() -> dict[str, str] | None:
-    path = get_auth_table_path()
-    if not path.exists():
-        return None
-    try:
-        return json.loads(path.read_text())
-    except json.JSONDecodeError:
-        logger.error('Failed to decode JSON from auth table')
-        return None
+    yield model['provider']
