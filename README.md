@@ -234,17 +234,9 @@ unsubscribe = agent.on_new_message.subscribe(handle_new_message)
 unsubscribe()
 ```
 
-## Technical Notes
+## Development
 
-### Communication Backend
-
-There are currently multiple APIs across providers. For example, OpenAI has both its legacy API and the newer Responses API. Anthropic has its own API. Other providers may claim compatibility with existing APIs such as OpenAI's, but still differ in subtle ways.
-
-Several libraries attempt to abstract over these differences and expose a unified interface. Agentron uses [pi-ai](https://github.com/badlogic/pi-mono/tree/main/packages/ai) for this purpose.
-
-Agentron lazily spawns a lightweight, process-wide Node.js RPC helper ([`flux`](packages/flux)) to communicate with LLMs via the pi-ai translation layer, which eventually delegates to provider-specific JavaScript SDKs. IPC occurs over Unix domain sockets.
-
-This process is automatically torn down when the parent Python process exits.
+See [DEVELOPMENT.md](DEVELOPMENT.md) for development related instructions and notes.
 
 ## License
 

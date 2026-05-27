@@ -3,7 +3,8 @@
     "private": true,
     "scripts": {
         "build": "tsc --build --clean && tsc --build && node packages/webui/scripts/build.mjs",
-        "watch": "tsc --build --watch"
+        "watch": "tsc --build --watch",
+        "bundle": "node packages/webui/scripts/build.mjs"
     },
     "workspaces": [
         "packages/ein",
