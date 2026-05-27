@@ -26,10 +26,16 @@ def load_auth_table() -> dict[str, str]:
     if not path.exists():
         return {}
     try:
-        return json.loads(path.read_text())
+        auth_table = json.loads(path.read_text())
     except json.JSONDecodeError:
         logger.error('Failed to decode JSON from auth table')
         return {}
+
+    if not isinstance(auth_table, dict):
+        logger.error('Auth table JSON is not a dictionary')
+        return {}
+
+    return auth_table
 
 
 def resolve_auth_value(
