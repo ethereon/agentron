@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from agentron.types.model import Model
 from agentron.rpc.api import ApiKeySource
 from agentron.auth import resolve_auth_value
@@ -10,7 +12,7 @@ def resolve_api_key(model: Model) -> ApiKeySource | None:
     )
 
 
-def _get_model_api_key_env_vars(model: Model):
+def _get_model_api_key_env_vars(model: Model) -> Iterable[str]:
     # Check model-specific environment variables
     # e.g.: OPENROUTER_API_KEY
     candidates = model.get('auth_env_vars')
@@ -22,7 +24,7 @@ def _get_model_api_key_env_vars(model: Model):
         yield f'{model["provider"].upper()}_API_KEY'
 
 
-def _get_model_auth_table_keys(model: Model):
+def _get_model_auth_table_keys(model: Model) -> Iterable[str]:
     # Fine-grained <provider:model> keys take precedence over provider-level keys
     # e.g.: zai-coding-plan:glm-4.7
     yield f'{model["provider"]}:{model["id"]}'
