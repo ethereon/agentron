@@ -1,5 +1,5 @@
-import { Type, type TSchema, type TObject } from '@sinclair/typebox';
-import { StringEnum, type Tool } from '@mariozechner/pi-ai';
+import { Type, type TSchema, type TObject } from 'typebox';
+import { StringEnum, type Tool } from '@earendil-works/pi-ai';
 import type {
     JsonSchema,
     JsonSchemaAnyOf,
@@ -111,7 +111,7 @@ function jsonSchemaToTypeBox(schema: JsonSchema): TSchema {
  * Converts a JSON Schema tool definition (as used by OpenAI/Anthropic APIs)
  * to a pi-compatible Tool definition backed by TypeBox.
  */
-export function jsonSchemaToolToPiTool(schemaTool: ToolSchema): Tool {
+export function jsonSchemaToolToPiTool(schemaTool: ToolSchema): Tool<TObject> {
     const parameters = jsonSchemaToTypeBox(schemaTool.parameters) as TObject;
 
     return {

@@ -1,6 +1,6 @@
 import type { OAuthLoginData } from '@ethereon/agentypes/api.js';
 
-import { getOAuthApiKey, type OAuthCredentials } from '@mariozechner/pi-ai/oauth';
+import { getOAuthApiKey, type OAuthCredentials } from '@earendil-works/pi-ai/oauth';
 import { saveOAuthLoginData } from '../auth.js';
 import { isDeepEqual } from '@ethereon/ein/object';
 
