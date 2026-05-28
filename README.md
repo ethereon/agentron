@@ -176,10 +176,11 @@ Specifying the `output` argument causes Agentron to persist session events (meta
 
 ```python
 agent = make_agent(
-    # If this path points to an existing directory, session events will
-    # automatically be written to a file under it named <session_id>.jsonl.
-    # Otherwise, the path is treated as the target JSONL file.
-    output="/path/to/output",
+    # A sub-directory will be automatically created for the session under
+    # the given path and events will be automatically written to it.
+    # Any spawned sub-agents will also automatically persist their
+    # sessions to this sub-directory.
+    output="~/sessions",
     ...
 )
 ```

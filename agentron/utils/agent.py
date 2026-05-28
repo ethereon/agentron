@@ -43,7 +43,8 @@ def make_agent(
             If not provided, the function will attempt to resolve the API key from the environment or configuration.
 
         output:
-            An optional file path [jsonl] to write the agent's messages to in real-time.
+            An optional directory path where the session data will be written in real-time.
+            A sub-directory with the agent's session ID will be automatically created.
 
         title:
             An optional title for the agent session (persisted as metadata when serialized).
@@ -91,7 +92,7 @@ def make_agent(
 
     # Auto-persist messages if an output path is provided.
     if output is not None:
-        auto_write_messages(agent, Path(output))
+        auto_write_messages(agent, Path(output).expanduser())
 
     # Stream agent activity to the terminal if requested.
     if terminal:

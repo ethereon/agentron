@@ -79,7 +79,7 @@ def main():
         '--output',
         type=Path,
         default=None,
-        help='Directory/file to save the coding agent session outputs.',
+        help="Directory path where the session data will be written in real-time. A sub-directory with the agent's session ID will be automatically created.",
     )
     code_parser.add_argument(
         '--reasoning',

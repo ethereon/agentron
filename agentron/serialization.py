@@ -108,19 +108,24 @@ def write_messages(
         writer.write_messages(messages)
 
 
-def _resolve_auto_write_path(agent: Agent, path: Path) -> Path:
-    if path.is_dir():
-        return path / f'{agent.session_id}.jsonl'
-    return path
-
-
 def auto_write_messages(agent: Agent, path: Path) -> Subscription:
     """
-    Automatically write existing and future messages for the given agent to
-    the specified path. If the path is a directory, a file named after the
-    agent's session ID will be created inside it.
+    Automatically write existing and future messages for the given agent
+    under the specified path.
+
+    - The path is expected to be an existing directory.
+    - A sub-directory with the agent's session ID will be created if it doesn't already exist.
+    - Persistence for sub-agents will be automatically handled and scoped to the parent agent's session.
     """
-    writer = MessageWriter(_resolve_auto_write_path(agent, path))
+    if not path.exists():
+        raise ValueError(f'Path {path} does not exist.')
+    if not path.is_dir():
+        raise ValueError(f'Path {path} is not a directory.')
+
+    session_dir = path / agent.session_id
+    session_dir.mkdir(exist_ok=True)
+
+    writer = MessageWriter(session_dir / 'session.jsonl')
     write_message = writer.write_message
     new_message_subscription: Subscription | None = None
     finalize_subscription: Subscription | None = None

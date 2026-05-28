@@ -47,7 +47,7 @@ class WriteMessagesTests(unittest.TestCase):
                     [message],
                     destination,
                     session_id='session-123',
-                    metadata={'source': 'test'},
+                    metadata={'title': 'test'},
                 )
 
             lines = destination.read_text().splitlines()
@@ -58,7 +58,7 @@ class WriteMessagesTests(unittest.TestCase):
                     'version': 1,
                     'session_id': 'session-123',
                     'created': 123456,
-                    'metadata': {'source': 'test'},
+                    'metadata': {'title': 'test'},
                 },
             )
             self.assertEqual(json.loads(lines[1]), message)
@@ -74,7 +74,7 @@ class WriteMessagesTests(unittest.TestCase):
                     [message],
                     destination,
                     session_id='session-123',
-                    metadata={'source': 'test'},
+                    metadata={'title': 'test'},
                 )
 
             lines = destination.read_text().splitlines()
@@ -116,22 +116,22 @@ class _TrackingFile:
 class AutoWriteMessagesTests(unittest.TestCase):
     def test_auto_write_messages_appends_existing_and_new_messages(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
-            destination = Path(temp_dir) / 'messages.jsonl'
-            destination.write_text('{"existing":true}\n')
-
             existing_message = make_user_message('alpha')
             agent = Agent(messages=[existing_message])
+            session_file = Path(temp_dir) / agent.session_id / 'session.jsonl'
+            session_file.parent.mkdir()
+            session_file.write_text('{"existing":true}\n')
 
-            auto_write_messages(agent, destination)
+            auto_write_messages(agent, Path(temp_dir))
 
-            initial_lines = destination.read_text().splitlines()
+            initial_lines = session_file.read_text().splitlines()
             self.assertEqual(initial_lines[0], '{"existing":true}')
             self.assertEqual(json.loads(initial_lines[1]), existing_message)
 
             new_message = make_user_message('beta')
             agent._push_message(new_message)
 
-            updated_lines = destination.read_text().splitlines()
+            updated_lines = session_file.read_text().splitlines()
             self.assertEqual(updated_lines[0], '{"existing":true}')
             self.assertEqual(json.loads(updated_lines[1]), existing_message)
             self.assertEqual(json.loads(updated_lines[2]), new_message)
@@ -144,13 +144,13 @@ class AutoWriteMessagesTests(unittest.TestCase):
             agent = Agent(
                 session_id='session-123',
                 messages=[make_user_message('alpha')],
-                metadata={'source': 'test'},
+                metadata={'title': 'test'},
             )
 
             with patch('agentron.serialization.time.time', return_value=123.456):
                 auto_write_messages(agent, destination_dir)
 
-            session_file = destination_dir / 'session-123.jsonl'
+            session_file = destination_dir / 'session-123' / 'session.jsonl'
             self.assertTrue(session_file.exists())
             lines = session_file.read_text().splitlines()
             self.assertEqual(
@@ -160,7 +160,7 @@ class AutoWriteMessagesTests(unittest.TestCase):
                     'version': 1,
                     'session_id': 'session-123',
                     'created': 123456,
-                    'metadata': {'source': 'test'},
+                    'metadata': {'title': 'test'},
                 },
             )
             self.assertEqual(json.loads(lines[1]), agent.messages[0])
@@ -169,10 +169,12 @@ class AutoWriteMessagesTests(unittest.TestCase):
 
     def test_auto_write_messages_closes_on_finalize_and_stops_writing(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
-            destination = Path(temp_dir) / 'messages.jsonl'
-            wrapped_file = destination.open('a', encoding='utf-8')
-            tracking_file = _TrackingFile(wrapped_file)
+            destination_dir = Path(temp_dir)
             agent = Agent()
+            session_file = destination_dir / agent.session_id / 'session.jsonl'
+            session_file.parent.mkdir()
+            wrapped_file = session_file.open('a', encoding='utf-8')
+            tracking_file = _TrackingFile(wrapped_file)
 
             with (
                 patch('agentron.serialization.Path.open', return_value=tracking_file),
@@ -181,7 +183,7 @@ class AutoWriteMessagesTests(unittest.TestCase):
                     return_value=123.456,
                 ),
             ):
-                auto_write_messages(agent, destination)
+                auto_write_messages(agent, destination_dir)
 
                 self.assertFalse(tracking_file.closed)
 
@@ -192,7 +194,7 @@ class AutoWriteMessagesTests(unittest.TestCase):
 
                 agent._push_message(make_user_message('ignored'))
 
-            lines = destination.read_text().splitlines()
+            lines = session_file.read_text().splitlines()
             self.assertEqual(
                 json.loads(lines[0]),
                 {
@@ -204,6 +206,23 @@ class AutoWriteMessagesTests(unittest.TestCase):
                 },
             )
             self.assertEqual(len(lines), 1)
+
+    def test_auto_write_messages_raises_for_missing_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            destination_dir = Path(temp_dir) / 'missing'
+            agent = Agent()
+
+            with self.assertRaisesRegex(ValueError, f'Path {destination_dir} does not exist.'):
+                auto_write_messages(agent, destination_dir)
+
+    def test_auto_write_messages_raises_for_file_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            destination_file = Path(temp_dir) / 'messages.jsonl'
+            destination_file.write_text('')
+            agent = Agent()
+
+            with self.assertRaisesRegex(ValueError, f'Path {destination_file} is not a directory.'):
+                auto_write_messages(agent, destination_file)
 
 
 class ReadSessionDataTests(unittest.TestCase):
@@ -221,7 +240,7 @@ class ReadSessionDataTests(unittest.TestCase):
                                 'version': 1,
                                 'session_id': 'session-123',
                                 'created': 123456,
-                                'metadata': {'source': 'test'},
+                                'metadata': {'title': 'test'},
                             },
                             separators=(',', ':'),
                         ),
@@ -242,7 +261,7 @@ class ReadSessionDataTests(unittest.TestCase):
                     'version': 1,
                     'session_id': 'session-123',
                     'created': 123456,
-                    'metadata': {'source': 'test'},
+                    'metadata': {'title': 'test'},
                 },
             )
             self.assertEqual(session_data.messages, [message_a, message_b])
