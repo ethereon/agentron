@@ -10,7 +10,7 @@
         "test": "vitest"
     },
     "dependencies": {
-        "@mariozechner/pi-ai": "^0.62.0"
+        "@earendil-works/pi-ai": "^0.76.0"
     },
     "devDependencies": {
         "prettier": "^3.8.1",

@@ -1,4 +1,4 @@
-import * as pi from '@mariozechner/pi-ai';
+import * as pi from '@earendil-works/pi-ai';
 
 import { textContent } from '../agent-message-utils.js';
 import type {
