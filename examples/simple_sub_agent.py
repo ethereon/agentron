@@ -1,0 +1,37 @@
+import asyncio
+
+from agentron import make_agent, Agent
+
+
+async def review_code(code: str) -> str:
+    """
+    Reviews the given code and returns feedback.
+
+    Args:
+        code: The code to be reviewed.
+    """
+    parent = Agent.get_active()
+    sub_agent = make_agent(
+        system_prompt='You are a code review assistant. Provide feedback on the following code.',
+        # The model and API key are inherited from the parent agent here.
+        # However, a separate model/api-key can also be specified if desired.
+        parent=parent,
+        terminal=True,
+    )
+    response = await sub_agent.ask(prompt=code)
+    return response or 'An error was encountered while reviewing the code.'
+
+
+async def main():
+    agent = make_agent(
+        system_prompt="You are a helpful assistant. Use the available tools to answer the user's question.",
+        tools=[review_code],
+        model='openrouter:openrouter/free',
+        terminal=True,
+    )
+    response = await agent.ask('Review this code: average = lambda nums: sum(nums) / len(nums)')
+    print('Main agent response:', response)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
