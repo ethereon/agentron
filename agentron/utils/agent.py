@@ -1,10 +1,12 @@
 import time
 
 from pathlib import Path
+from typing import Sequence
 
 from agentron.model.repo import get_model
 from agentron.types.model import Model
 from agentron.rpc.flux import FluxBackend
+from agentron.rpc.api import ApiKeySource
 from agentron.types.core import ToolFunction
 from agentron.agent import Agent
 from agentron.tool.manager import CoreToolManager
@@ -17,9 +19,9 @@ from agentron.terminal import TerminalOutput
 def make_agent(
     *,
     system_prompt: str,
-    tools: list[ToolFunction],
-    model: Model | str,
-    api_key: str | None = None,
+    tools: Sequence[ToolFunction] = (),
+    model: Model | str | None = None,
+    api_key: ApiKeySource | None = None,
     output: Path | str | None = None,
     title: str | None = None,
     terminal: bool = False,
@@ -38,6 +40,8 @@ def make_agent(
         model:
             The model to use for the agent.
             Can be specified as a string in the format "provider:model_name"
+            May be omitted when a parent agent is provided, in which case the model and API key
+            will be inherited from the parent.
 
         api_key:
             An optional API key to use for the model.
@@ -62,6 +66,18 @@ def make_agent(
     # Resolve the model
     if isinstance(model, str):
         model = get_model(model)
+
+    if model is None:
+        if parent is None:
+            raise ValueError('Model must be specified if no parent agent is provided.')
+
+        # Inherit model details from the parent agent
+        parent_backend = parent.backend
+        assert isinstance(parent_backend, FluxBackend)
+        model = parent_backend.model
+        # Inherit API key from parent if not explicitly provided
+        if api_key is None:
+            api_key = parent_backend.api_key
 
     # Create the agent
     agent = Agent(
