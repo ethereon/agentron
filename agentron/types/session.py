@@ -10,3 +10,5 @@ class SessionMetadata(TypedDict, total=False):
     cwd: str
     # Creation timestamp [milliseconds since epoch]
     created: int
+    # Sub-agents set this to their parent session ID
+    parent_session_id: str

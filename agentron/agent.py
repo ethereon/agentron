@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import asyncio
 import uuid
 
 from typing import Iterable
+from contextvars import ContextVar
 
 from agentron.types.model import ModelReasoningLevel
 from agentron.types.core import LLMBackend
@@ -24,6 +27,8 @@ from agentron.types.message import (
     ToolResult,
 )
 
+active_agent: ContextVar[Agent | None] = ContextVar('active_agent', default=None)
+
 
 class Agent:
     def __init__(
@@ -44,6 +49,7 @@ class Agent:
         self.on_streaming_message = Publisher[StreamingMessage]()
         self.on_tool_call = Publisher[ToolCall]()
         self.on_finalize = Publisher[None]()
+        self.on_sub_agent_created = Publisher[Agent]()
 
     async def ask(
         self,
@@ -81,6 +87,13 @@ class Agent:
             self.on_finalize,
         )
 
+    @classmethod
+    def get_active(cls) -> Agent:
+        agent = active_agent.get()
+        if agent is None:
+            raise RuntimeError('No active agent exists.')
+        return agent
+
     async def _resume(
         self,
         *,
@@ -117,8 +130,15 @@ class Agent:
         """
         if self.tool_manager is None:
             raise RuntimeError('No tool manager configured for this agent.')
+
         self.on_tool_call.publish(tool_call)
-        return await self.tool_manager(tool_call)
+
+        token = active_agent.set(self)
+
+        try:
+            return await self.tool_manager(tool_call)
+        finally:
+            active_agent.reset(token)
 
     async def _transmit(self, *, reasoning: ModelReasoningLevel | None) -> AssistantMessage:
         if self.backend is None:

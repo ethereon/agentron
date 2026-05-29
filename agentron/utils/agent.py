@@ -23,6 +23,7 @@ def make_agent(
     output: Path | str | None = None,
     title: str | None = None,
     terminal: bool = False,
+    parent: Agent | None = None,
 ) -> Agent:
     """
     Convenience function to create an Agent with common configurations.
@@ -51,6 +52,9 @@ def make_agent(
 
         terminal:
             Whether to also print the agent's activity (messages, tool calls...) to the terminal in real-time.
+
+        parent:
+            An optional parent agent (if this agent is a sub-agent).
 
     Returns:
         An instance of Agent configured with the specified parameters.
@@ -89,6 +93,8 @@ def make_agent(
     agent.metadata['created'] = int(time.time() * 1000)
     if title is not None:
         agent.metadata['title'] = title
+    if parent is not None:
+        agent.metadata['parent_session_id'] = parent.session_id
 
     # Auto-persist messages if an output path is provided.
     if output is not None:
@@ -97,5 +103,8 @@ def make_agent(
     # Stream agent activity to the terminal if requested.
     if terminal:
         TerminalOutput(agent)
+
+    if parent:
+        parent.on_sub_agent_created.publish(agent)
 
     return agent
