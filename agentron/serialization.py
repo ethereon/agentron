@@ -117,7 +117,7 @@ def auto_write_messages(agent: Agent, path: Path) -> Callable[[], None]:
 
     - The path is expected to be an existing directory.
     - A sub-directory with the agent's session ID will be created if it doesn't already exist.
-    - Persistence for sub-agents will be automatically handled and scoped to the parent agent's session.
+    - Persistence for subagents will be automatically handled and scoped to the parent agent's session.
     """
     if not path.exists():
         raise ValueError(f'Path {path} does not exist.')
@@ -142,14 +142,14 @@ def auto_write_messages(agent: Agent, path: Path) -> Callable[[], None]:
     def on_finalize(_: None) -> None:
         close()
 
-    def on_sub_agent_created(sub_agent: Agent) -> None:
-        auto_write_messages(sub_agent, session_dir)
+    def on_subagent_created(subagent: Agent) -> None:
+        auto_write_messages(subagent, session_dir)
 
     try:
         subs.add(
             agent.on_new_message.subscribe(write_message),
             agent.on_finalize.subscribe(on_finalize),
-            agent.on_sub_agent_created.subscribe(on_sub_agent_created),
+            agent.on_subagent_created.subscribe(on_subagent_created),
         )
         writer.maybe_write_header(
             session_id=agent.session_id,

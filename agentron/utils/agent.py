@@ -58,7 +58,7 @@ def make_agent(
             Whether to also print the agent's activity (messages, tool calls...) to the terminal in real-time.
 
         parent:
-            An optional parent agent (if this agent is a sub-agent).
+            An optional parent agent (if this agent is a subagent).
 
     Returns:
         An instance of Agent configured with the specified parameters.
@@ -121,6 +121,6 @@ def make_agent(
         TerminalOutput(agent)
 
     if parent:
-        parent.on_sub_agent_created.publish(agent)
+        parent.register_subagent(agent)
 
     return agent

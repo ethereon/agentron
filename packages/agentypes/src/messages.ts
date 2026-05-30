@@ -93,6 +93,7 @@ export interface AssistantMessage {
 export interface ToolResult {
     success: boolean;
     content: Content;
+    subagent_ids?: string[];
 }
 
 export interface ToolResultMessage {

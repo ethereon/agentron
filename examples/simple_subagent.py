@@ -11,15 +11,21 @@ async def review_code(code: str) -> str:
         code: The code to be reviewed.
     """
     parent = Agent.get_active()
-    sub_agent = make_agent(
+    subagent = make_agent(
         system_prompt='You are a code review assistant. Provide feedback on the following code.',
         # The model and API key are inherited from the parent agent here.
         # However, a separate model/api-key can also be specified if desired.
+        #
+        # If the parent agent has persistence enabled, the subagent's events are also
+        # automatically persisted, scoped under the parent agent's session.
         parent=parent,
         terminal=True,
     )
-    response = await sub_agent.ask(prompt=code)
-    return response or 'An error was encountered while reviewing the code.'
+
+    with subagent:
+        response = await subagent.ask(prompt=code)
+
+    return response or 'No feedback.'
 
 
 async def main():

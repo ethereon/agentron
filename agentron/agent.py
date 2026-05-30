@@ -27,7 +27,17 @@ from agentron.types.message import (
     ToolResult,
 )
 
-active_agent: ContextVar[Agent | None] = ContextVar('active_agent', default=None)
+
+class AgentInvocationContext:
+    def __init__(self, agent: Agent):
+        self.agent = agent
+        self.subagents: list[Agent] = []
+
+
+# Context for active tool call.
+# Typically used for associating subagents with their invoking parent agent.
+# Use Agent.get_active() within a tool to access the currently active agent.
+active_invocation: ContextVar[AgentInvocationContext | None] = ContextVar('active_invocation', default=None)
 
 
 class Agent:
@@ -49,7 +59,7 @@ class Agent:
         self.on_streaming_message = Publisher[StreamingMessage]()
         self.on_tool_call = Publisher[ToolCall]()
         self.on_finalize = Publisher[None]()
-        self.on_sub_agent_created = Publisher[Agent]()
+        self.on_subagent_created = Publisher[Agent]()
 
     async def ask(
         self,
@@ -87,12 +97,18 @@ class Agent:
             self.on_finalize,
         )
 
+    def register_subagent(self, subagent: Agent) -> None:
+        self.on_subagent_created.publish(subagent)
+        ctx = active_invocation.get()
+        if ctx is not None:
+            ctx.subagents.append(subagent)
+
     @classmethod
     def get_active(cls) -> Agent:
-        agent = active_agent.get()
-        if agent is None:
+        ctx = active_invocation.get()
+        if ctx is None:
             raise RuntimeError('No active agent exists.')
-        return agent
+        return ctx.agent
 
     async def _resume(
         self,
@@ -131,14 +147,17 @@ class Agent:
         if self.tool_manager is None:
             raise RuntimeError('No tool manager configured for this agent.')
 
+        ctx = AgentInvocationContext(self)
+        token = active_invocation.set(ctx)
         self.on_tool_call.publish(tool_call)
-
-        token = active_agent.set(self)
-
         try:
-            return await self.tool_manager(tool_call)
+            result = await self.tool_manager(tool_call)
+            # Associate any subagents created during this tool call
+            if ctx.subagents:
+                result['subagent_ids'] = [agent.session_id for agent in ctx.subagents]
+            return result
         finally:
-            active_agent.reset(token)
+            active_invocation.reset(token)
 
     async def _transmit(self, *, reasoning: ModelReasoningLevel | None) -> AssistantMessage:
         if self.backend is None:
