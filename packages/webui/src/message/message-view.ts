@@ -346,5 +346,20 @@ class ToolCallView {
         this.detailsView?.renderResults(toolResult);
         this.statusIcon.replaceChildren(makeIcon(toolResult.success ? 'Check' : 'Cross'));
         this.statusIcon.classList.toggle(style.failed, !toolResult.success);
+
+        // Check if this tool call spawned any subagents.
+        const subagent_ids = toolResult.subagent_ids;
+        if (subagent_ids != null && subagent_ids.length > 0) {
+            // Insert buttons to view the subagents' sessions.
+            const subagentButtons = subagent_ids.map(id => {
+                const button = div({
+                    class: style.tool_call_subagent_button,
+                    text: 'Subagent'
+                });
+                button.onmousedown = () => {};
+                return button;
+            });
+            this.statusIcon.after(...subagentButtons);
+        }
     }
 }

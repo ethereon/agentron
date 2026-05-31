@@ -245,6 +245,17 @@ a {
 .at-tool-call-status-icon.failed {
     color: var(--tool-call-icon-failed);
 }
+.at-tool-call-subagent-button {
+    font-size: 0.65rem;
+    padding: 2px 5px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+.at-tool-call-subagent-button:hover {
+    background-color: var(--border);
+}
 .at-tool-call-result {
     font-family: 'JetBrains Mono';
     font-size: 0.85rem;
