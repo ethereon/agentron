@@ -4,7 +4,7 @@ import { DisposableObject } from '@ethereon/ein/disposable';
 import { Observable, ObservableDisposable } from '@ethereon/ein/publisher';
 import { SessionController, SessionItem } from '../session/session-controller.js';
 
-export class AppController extends DisposableObject {
+class AppController extends DisposableObject {
     readonly sessions = new Observable<SessionItem[]>(this);
     readonly activeSession = new ObservableDisposable<SessionController | undefined>(this);
 
@@ -31,3 +31,5 @@ export class AppController extends DisposableObject {
         );
     }
 }
+
+export const app = new AppController();
