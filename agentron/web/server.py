@@ -41,11 +41,20 @@ class WebServer:
     An HTTP server that publishes agent session activity over SSE.
 
     Endpoints:
-        GET /api/sessions                   Metadata for registered session sources
-        GET /api/messages?session_id=<id>   Completed messages for the given session.
-        GET /api/events?session_id=<id>     SSE stream for the given session.
-        GET /                               Serve index.html from the static directory.
-        GET /<path>                         Serve a static file from the static directory.
+        GET /api/sessions
+        Metadata for registered session sources.
+
+        GET /api/messages?session_id=<id>
+        Completed messages for the given session.
+
+        GET /api/events?session_id=<id>
+        SSE stream for the given session.
+
+        GET /<path>
+        Serve a static file from the static directory.
+
+        GET /
+        Serve index.html from the static directory.
 
     SSE event types:
         new_message         AgentMessage (user/system/assistant/tool_result)
