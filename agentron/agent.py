@@ -53,6 +53,7 @@ class Agent:
         self.backend: LLMBackend | None = None
         self.is_finalized = False
         self.metadata = metadata or {}
+        self.subagents_by_id: dict[str, Agent] = {}
 
         self.on_transmit = Publisher[None]()
         self.on_new_message = Publisher[AgentMessage]()
@@ -98,10 +99,16 @@ class Agent:
         )
 
     def register_subagent(self, subagent: Agent) -> None:
-        self.on_subagent_created.publish(subagent)
+        if subagent.session_id not in self.subagents_by_id:
+            self.subagents_by_id[subagent.session_id] = subagent
+            self.on_subagent_created.publish(subagent)
+
         ctx = active_invocation.get()
         if ctx is not None:
             ctx.subagents.append(subagent)
+
+    def resolve_subagent(self, session_id: str) -> Agent | None:
+        return self.subagents_by_id.get(session_id)
 
     @classmethod
     def get_active(cls) -> Agent:

@@ -41,6 +41,12 @@ class SerializedSessionSource(SessionSource):
             self._header = read_session_data(self.path, header_only=True).header
         return self._header
 
+    def resolve_subagent(self, session_id: str) -> SessionSource | None:
+        subagent_path = self.path.parent / session_id / 'session.jsonl'
+        if subagent_path.exists():
+            return SerializedSessionSource(subagent_path)
+        return None
+
     def _process_metadata(self, metadata: SessionMetadata) -> SessionMetadata:
         if metadata.get('created') is None:
             # If created timestamp is missing,

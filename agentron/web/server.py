@@ -35,6 +35,8 @@ class SessionSource(Protocol):
     @property
     def metadata(self) -> SessionMetadata: ...
 
+    def resolve_subagent(self, session_id: str) -> SessionSource | None: ...
+
 
 class WebServer:
     """
@@ -42,7 +44,12 @@ class WebServer:
 
     Endpoints:
         GET /api/sessions
-        Metadata for registered session sources.
+        Metadata for all top-level registered session sources.
+
+        GET /api/session-meta?session_id=<id>
+        Metadata for the given session ID.
+        A fully-scoped session ID may be provided to resolve subagent sessions,
+        which are not included in the top-level sessions list.
 
         GET /api/messages?session_id=<id>
         Completed messages for the given session.
@@ -183,12 +190,55 @@ class WebServer:
                     pass
 
     def _get_source(self, session_id: str) -> SessionSource | None:
+        """
+        Resolve the source for the given session ID.
+
+        The session ID may either directly match a registered source,
+        or it may be a scoped ID representing a subagent session
+        (e.g. "root:child", or "root:child:grandchild").
+        Subagent sources are typically lazily resolved and must be initially
+        requested using their full scoped ID.
+        """
+
         with self._lock:
-            return self._sessions.get(session_id)
+            parts = session_id.split(':')
+            primary_id = parts[-1]
+            src = self._sessions.get(primary_id)
+            if src is not None:
+                # Session ID directly matches a known source.
+                return src
+
+            if len(parts) == 1:
+                # No further resolution possible.
+                return None
+
+            root_src = self._sessions.get(parts[0])
+            if root_src is None:
+                # Failed to resolve the root session
+                return None
+
+            # Attempt to resolve the session ID by traversing the parent hierarchy.
+            # This allows for lazy subagent session resolution.
+            cur_src = root_src
+            for cur_id in parts[1:]:
+                cur_src = cur_src.resolve_subagent(cur_id)
+                if cur_src is None:
+                    break
+
+            return cur_src
 
     def _get_all_source_metadata(self) -> dict[str, SessionMetadata]:
         with self._lock:
             return {session_id: src.metadata for session_id, src in self._sessions.items()}
+
+    def _resolve_session_metadata(self, session_id: str) -> SessionMetadata | None:
+        with self._lock:
+            # Check if the primary session ID is already resolved.
+            primary_id, *parents = session_id.split(':')
+            src = self._sessions.get(primary_id)
+            if src is not None:
+                # Previously resolved
+                return src.metadata
 
     def _resolve_static_path(self, request_path: str) -> Path | None:
         relative_path = Path(unquote(request_path.lstrip('/')))
@@ -235,6 +285,8 @@ def _make_handler(server: WebServer):
                     self._handle_messages(parsed)
                 case '/api/sessions':
                     self._handle_sessions()
+                case '/api/session-meta':
+                    self._handle_session_meta(parsed)
                 case _:
                     self._handle_static(parsed.path)
 
@@ -253,6 +305,11 @@ def _make_handler(server: WebServer):
             sessions: SessionsResponse = server._get_all_source_metadata()
             self._write_json(sessions)
 
+        def _handle_session_meta(self, parsed) -> None:
+            source = self._require_source(parsed)
+            if source is not None:
+                self._write_json(source.metadata)
+
         def _require_session_id(self, parsed) -> str | None:
             params = parse_qs(parsed.query)
             ids = params.get('session_id')
@@ -265,11 +322,11 @@ def _make_handler(server: WebServer):
             session_id = self._require_session_id(parsed)
             if session_id is None:
                 return None
-            agent = server._get_source(session_id)
-            if agent is None:
+            source = server._get_source(session_id)
+            if source is None:
                 self.send_error(404, f'Unknown session: {session_id}')
                 return None
-            return agent
+            return source
 
         def _handle_sse(self, parsed) -> None:
             session_id = self._require_session_id(parsed)
