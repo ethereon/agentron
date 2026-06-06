@@ -23,6 +23,7 @@ import {
 } from './message-view-utils.js';
 import { resolveToolCallPreview } from './tool-call-preview.js';
 import { IToolDetailsView, makeToolDetailsView } from './tool-details-view.js';
+import { app } from '../app/app-controller.js';
 
 export type AgentMessageView = SystemMessageView | UserMessageView | AssistantMessageView;
 
@@ -351,12 +352,12 @@ class ToolCallView {
         const subagent_ids = toolResult.subagent_ids;
         if (subagent_ids != null && subagent_ids.length > 0) {
             // Insert buttons to view the subagents' sessions.
-            const subagentButtons = subagent_ids.map(id => {
+            const subagentButtons = subagent_ids.map(subagentId => {
                 const button = div({
                     class: style.tool_call_subagent_button,
                     text: 'Subagent'
                 });
-                button.onmousedown = () => {};
+                button.onmousedown = () => app.activateSubagentSession(subagentId);
                 return button;
             });
             this.statusIcon.after(...subagentButtons);

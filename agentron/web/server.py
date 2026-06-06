@@ -196,34 +196,35 @@ class WebServer:
         The session ID may either directly match a registered source,
         or it may be a scoped ID representing a subagent session
         (e.g. "root:child", or "root:child:grandchild").
-        Subagent sources are typically lazily resolved and must be initially
-        requested using their full scoped ID.
         """
 
         with self._lock:
-            parts = session_id.split(':')
-            primary_id = parts[-1]
-            src = self._sessions.get(primary_id)
+            src = self._sessions.get(session_id)
             if src is not None:
-                # Session ID directly matches a known source.
+                # Existing source found.
                 return src
 
+            parts = session_id.split(':')
             if len(parts) == 1:
                 # No further resolution possible.
                 return None
 
+            # Attempt to resolve the session ID by traversing the parent hierarchy.
+            # This allows for lazy subagent session resolution.
             root_src = self._sessions.get(parts[0])
             if root_src is None:
                 # Failed to resolve the root session
                 return None
 
-            # Attempt to resolve the session ID by traversing the parent hierarchy.
-            # This allows for lazy subagent session resolution.
             cur_src = root_src
             for cur_id in parts[1:]:
                 cur_src = cur_src.resolve_subagent(cur_id)
                 if cur_src is None:
                     break
+
+            if cur_src is not None:
+                # Cache the resolved source for future lookups.
+                self._sessions[session_id] = cur_src
 
             return cur_src
 
