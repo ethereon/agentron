@@ -114,7 +114,9 @@ def make_agent(
 
     # Auto-persist messages if an output path is provided.
     if output is not None:
-        auto_write_messages(agent, Path(output).expanduser())
+        output = Path(output).expanduser()
+        output.mkdir(exist_ok=True)
+        auto_write_messages(agent, output)
 
     # Stream agent activity to the terminal if requested.
     if terminal:
