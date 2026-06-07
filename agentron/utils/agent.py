@@ -8,7 +8,7 @@ from agentron.types.model import Model
 from agentron.rpc.flux import FluxBackend
 from agentron.rpc.api import ApiKeySource
 from agentron.types.core import ToolFunction
-from agentron.agent import Agent
+from agentron.agent import Agent, active_invocation
 from agentron.tool.manager import CoreToolManager
 from agentron.model.auth import resolve_api_key
 from agentron.utils.message import make_system_message
@@ -104,13 +104,18 @@ def make_agent(
     )
 
     # Setup metadata
-    agent.metadata['model'] = model
-    agent.metadata['cwd'] = str(Path.cwd())
-    agent.metadata['created'] = int(time.time() * 1000)
+    meta = agent.metadata
+    meta['model'] = model
+    meta['cwd'] = str(Path.cwd())
+    meta['created'] = int(time.time() * 1000)
     if title is not None:
-        agent.metadata['title'] = title
+        meta['title'] = title
     if parent is not None:
-        agent.metadata['parent_session_id'] = parent.session_id
+        meta['parent_session_id'] = parent.session_id
+        # Link this subagent to its invoking tool call name if available.
+        invocation = active_invocation.get()
+        if invocation is not None:
+            meta['invoking_tool_call'] = invocation.tool_call['name']
 
     # Auto-persist messages if an output path is provided.
     if output is not None:

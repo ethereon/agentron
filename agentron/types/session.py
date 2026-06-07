@@ -12,3 +12,5 @@ class SessionMetadata(TypedDict, total=False):
     created: int
     # Subagents set this to their parent session ID
     parent_session_id: str
+    # Subagents set this to the tool call name that triggered their creation
+    invoking_tool_call: str

@@ -29,8 +29,9 @@ from agentron.types.message import (
 
 
 class AgentInvocationContext:
-    def __init__(self, agent: Agent):
+    def __init__(self, agent: Agent, tool_call: ToolCall):
         self.agent = agent
+        self.tool_call = tool_call
         self.subagents: list[Agent] = []
 
 
@@ -154,7 +155,7 @@ class Agent:
         if self.tool_manager is None:
             raise RuntimeError('No tool manager configured for this agent.')
 
-        ctx = AgentInvocationContext(self)
+        ctx = AgentInvocationContext(agent=self, tool_call=tool_call)
         token = active_invocation.set(ctx)
         self.on_tool_call.publish(tool_call)
         try:
