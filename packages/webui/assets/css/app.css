@@ -33,9 +33,11 @@ a {
     align-items: center;
 }
 .at-app-header {
-    height: 60px;
+    min-height: 60px;
     border-bottom: 1px solid var(--app-header-border);
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     width: 100vw;
     position: sticky;
@@ -48,10 +50,42 @@ a {
     max-width: min(calc(100vw - 40px), 820px);
 }
 .at-app-header-content {
+    height: 60px;
     flex-grow: 1;
     display: flex;
     gap: 20px;
     align-items: center;
+}
+.at-session-nav-bar {
+    width: 100%;
+    border-top: 1px solid rgb(from var(--app-header-border) r g b / 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.at-session-nav-bar-content {
+    width: 820px;
+    max-width: min(calc(100vw - 40px), 820px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 13px;
+    line-height: 2.5;
+}
+.at-session-nav-bar-link {
+    color: var(--fg);
+    opacity: 0.72;
+}
+.at-session-nav-bar-link[aria-current="page"] {
+    opacity: 1;
+}
+.at-session-nav-bar-link:hover {
+    opacity: 1;
+}
+.at-session-nav-bar-separator {
+    opacity: 0.35;
 }
 .at-app-header-icon-button {
     color: var(--app-icon-color);

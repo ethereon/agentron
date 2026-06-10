@@ -78,6 +78,10 @@ class AppController extends DisposableObject {
 
     generateSubagentSessionUrl(subagentId: string): URL | undefined {
         const sessionId = this.getSubagentSessionId(subagentId);
+        return this.generateSessionUrl(sessionId);
+    }
+
+    generateSessionUrl(sessionId: string | undefined): URL | undefined {
         return this.sessionUrl.generateSessionUrl(sessionId);
     }
 
@@ -95,7 +99,7 @@ class AppController extends DisposableObject {
         }
     }
 
-    private async getSessionItem(sessionId: string | undefined): Promise<SessionItem | undefined> {
+    async getSessionItem(sessionId: string | undefined): Promise<SessionItem | undefined> {
         if (sessionId == null) {
             return undefined;
         }

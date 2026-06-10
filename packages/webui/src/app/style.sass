@@ -2,8 +2,9 @@
 @use typography
 
 // Layout
-$max_container_width: 820px
 $h_pad: 20px
+$max_container_width: 820px
+$header_content_max_width: min(calc(100vw - $(2*h_pad)), $max_container_width)
 
 *
     margin: 0
@@ -43,9 +44,11 @@ a
     align-items: center
 
 .at-app-header
-    height: 60px
+    min-height: 60px
     border-bottom: 1px solid $colors.app_header_border
     display: flex
+    flex-direction: column
+    align-items: center
     justify-content: center
     width: 100vw
     position: sticky
@@ -55,13 +58,43 @@ a
 
 .at-app-content, .at-app-header-content
     width: $max_container_width
-    max-width: min(calc(100vw - $(2*h_pad)), $max_container_width)
+    max-width: $header_content_max_width
 
 .at-app-header-content
+    height: 60px
     flex-grow: 1
     display: flex
     gap: 20px
     align-items: center
+
+.at-session-nav-bar
+    width: 100%
+    border-top: 1px solid rgb(from $colors.app_header_border r g b / 0.45)
+    display: flex
+    align-items: center
+    justify-content: center
+
+.at-session-nav-bar-content
+    width: $max_container_width
+    max-width: $header_content_max_width
+    display: flex
+    align-items: center
+    gap: 8px
+    overflow-x: auto
+    white-space: nowrap
+    font-size: 13px
+    line-height: 2.5
+
+.at-session-nav-bar-link
+    color: $colors.fg
+    opacity: 0.72
+    &[aria-current="page"]
+        opacity: 1
+    &:hover
+        opacity: 1
+
+.at-session-nav-bar-separator
+    opacity: 0.35
 
 .at-app-header-icon-button
     color: $colors.app_icon_color

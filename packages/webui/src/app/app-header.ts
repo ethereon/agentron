@@ -2,10 +2,11 @@ import { DisposableObject, DisposableStore } from '@ethereon/ein/disposable';
 import * as style from '../gen/styles/app.js';
 
 import { div } from '@ethereon/ein/dom/utils';
-import { SessionController } from '../session/session-controller.js';
+import { SessionController, SessionItem } from '../session/session-controller.js';
 import { TokenUsage } from '@ethereon/agentypes/messages.js';
 import { showSessionSelector } from '../session/session-selector.js';
 import { app } from './app-controller.js';
+import { makeIcon } from '../icons.js';
 
 export class AppHeader extends DisposableObject {
     readonly container: HTMLElement;
@@ -16,14 +17,105 @@ export class AppHeader extends DisposableObject {
         const appIcon = makeAppIcon();
         const contextMeter = this.disposables.add(new ContextMeter());
         const sessionSelector = this.disposables.add(new SessionSelectorButton());
+        const sessionNavBar = this.disposables.add(new SessionNavBar());
 
         this.container = div({
             class: style.app_header,
-            child: div({
-                class: style.app_header_content,
-                children: [appIcon, sessionSelector.container, contextMeter.container]
+            children: [
+                div({
+                    class: style.app_header_content,
+                    children: [appIcon, contextMeter.container, sessionSelector.container]
+                }),
+                sessionNavBar.container
+            ]
+        });
+    }
+}
+
+class SessionNavBar extends DisposableObject {
+    readonly container: HTMLElement;
+
+    private renderGeneration = 0;
+
+    constructor() {
+        super();
+        this.container = div({ class: style.session_nav_bar });
+        this.container.style.display = 'none';
+
+        this.disposables.add(
+            app.activeSession.subscribe(session => {
+                this.renderSession(session);
+            })
+        );
+    }
+
+    private async renderSession(session: SessionController | undefined) {
+        const generation = ++this.renderGeneration;
+        this.container.replaceChildren();
+
+        const isSubagent = session?.metadata.parent_session_id != null;
+        if (!isSubagent) {
+            this.container.style.display = 'none';
+            return;
+        }
+
+        const breadcrumb = await this.getBreadcrumb(session);
+        if (this.isDisposed || generation !== this.renderGeneration) {
+            return;
+        }
+
+        this.container.replaceChildren(this.renderBreadcrumb(breadcrumb));
+        this.container.style.display = '';
+    }
+
+    private async getBreadcrumb(session: SessionController): Promise<SessionItem[]> {
+        const breadcrumb: SessionItem[] = [
+            {
+                id: session.id,
+                metadata: session.metadata
+            }
+        ];
+
+        let parentSessionId = session.metadata.parent_session_id;
+        while (parentSessionId != null) {
+            const parentSession = await app.getSessionItem(parentSessionId);
+            if (parentSession == null) {
+                break;
+            }
+
+            breadcrumb.unshift(parentSession);
+            parentSessionId = parentSession.metadata.parent_session_id;
+        }
+
+        return breadcrumb;
+    }
+
+    private renderBreadcrumb(breadcrumb: SessionItem[]): HTMLElement {
+        return div({
+            class: style.session_nav_bar_content,
+            children: breadcrumb.flatMap((session, index) => {
+                const link = document.createElement('a');
+                link.classList.add(style.session_nav_bar_link);
+                link.textContent = index === 0 ? 'Main' : this.getSubagentTitle(session);
+                link.href = app.generateSessionUrl(session.id)?.toString() ?? '#';
+
+                if (index === breadcrumb.length - 1) {
+                    link.ariaCurrent = 'page';
+                }
+
+                if (index === 0) {
+                    return [link];
+                }
+
+                const separator = makeIcon('ChevronRight');
+                separator.classList.add(style.session_nav_bar_separator);
+                return [separator, link];
             })
         });
+    }
+
+    private getSubagentTitle(session: SessionItem): string {
+        return session.metadata.title ?? session.metadata.invoking_tool_call ?? 'Subagent';
     }
 }
 
