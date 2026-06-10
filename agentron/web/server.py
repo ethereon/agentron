@@ -195,7 +195,7 @@ class WebServer:
 
         The session ID may either directly match a registered source,
         or it may be a scoped ID representing a subagent session
-        (e.g. "root:child", or "root:child:grandchild").
+        (e.g. "root~child", or "root~child~grandchild").
         """
 
         with self._lock:
@@ -204,7 +204,7 @@ class WebServer:
                 # Existing source found.
                 return src
 
-            parts = session_id.split(':')
+            parts = session_id.split('~')
             if len(parts) == 1:
                 # No further resolution possible.
                 return None
@@ -231,15 +231,6 @@ class WebServer:
     def _get_all_source_metadata(self) -> dict[str, SessionMetadata]:
         with self._lock:
             return {session_id: src.metadata for session_id, src in self._sessions.items()}
-
-    def _resolve_session_metadata(self, session_id: str) -> SessionMetadata | None:
-        with self._lock:
-            # Check if the primary session ID is already resolved.
-            primary_id, *parents = session_id.split(':')
-            src = self._sessions.get(primary_id)
-            if src is not None:
-                # Previously resolved
-                return src.metadata
 
     def _resolve_static_path(self, request_path: str) -> Path | None:
         relative_path = Path(unquote(request_path.lstrip('/')))
