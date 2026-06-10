@@ -168,7 +168,11 @@ class SessionUrlObserver extends DisposableObject {
 
     constructor(private readonly onSessionIdChange: (sessionId: string | undefined) => void) {
         super();
-        this.disposables.add(listenForEvent(window, 'popstate', () => this.readUrl()));
+        const sync = () => this.onSessionIdChange(this.readSessionId());
+        this.disposables.push(
+            listenForEvent(window, 'hashchange', sync),
+            listenForEvent(window, 'popstate', sync)
+        );
     }
 
     get sessionId(): string | undefined {
@@ -180,11 +184,13 @@ class SessionUrlObserver extends DisposableObject {
         if (url == null) {
             return undefined;
         }
+        const hashParams = this.readHashParams(url);
         if (sessionId != null) {
-            url.searchParams.set(SessionUrlObserver.sessionParam, sessionId);
+            hashParams.set(SessionUrlObserver.sessionParam, sessionId);
         } else {
-            url.searchParams.delete(SessionUrlObserver.sessionParam);
+            hashParams.delete(SessionUrlObserver.sessionParam);
         }
+        url.hash = hashParams.toString();
         return url;
     }
 
@@ -200,13 +206,13 @@ class SessionUrlObserver extends DisposableObject {
         );
     }
 
-    private readUrl(): void {
-        this.onSessionIdChange(this.readSessionId());
+    private readSessionId(url = this.getCurrentUrl()): string | undefined {
+        const sessionId = this.readHashParams(url).get(SessionUrlObserver.sessionParam)?.trim();
+        return sessionId || undefined;
     }
 
-    private readSessionId(url = this.getCurrentUrl()): string | undefined {
-        const sessionId = url?.searchParams.get(SessionUrlObserver.sessionParam)?.trim();
-        return sessionId || undefined;
+    private readHashParams(url = this.getCurrentUrl()): URLSearchParams {
+        return new URLSearchParams(url?.hash.replace(/^#/, ''));
     }
 
     private getCurrentUrl(): URL | undefined {
