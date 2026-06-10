@@ -34,6 +34,10 @@ async def main():
         tools=[review_code],
         model='openrouter:openrouter/free',
         terminal=True,
+        # Uncomment the line below to enable persistence for the main agent.
+        # The subagent's events will also be persisted under the same session.
+        # Use `agentron web ~/agentron_sessions` to view it in the WebUI.
+        # output='~/agentron_sessions/',
     )
     response = await agent.ask('Review this code: average = lambda nums: sum(nums) / len(nums)')
     print('Main agent response:', response)
