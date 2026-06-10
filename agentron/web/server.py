@@ -230,7 +230,12 @@ class WebServer:
 
     def _get_all_source_metadata(self) -> dict[str, SessionMetadata]:
         with self._lock:
-            return {session_id: src.metadata for session_id, src in self._sessions.items()}
+            return {
+                session_id: src.metadata
+                for session_id, src in self._sessions.items()
+                # Exclude any subagent sessions
+                if not src.metadata.get('parent_session_id')
+            }
 
     def _resolve_static_path(self, request_path: str) -> Path | None:
         relative_path = Path(unquote(request_path.lstrip('/')))
