@@ -43,7 +43,7 @@ class SerializedSessionSource(SessionSource):
 
     def resolve_subagent(self, session_id: str) -> SessionSource | None:
         subagent_path = self.path.parent / session_id / 'session.jsonl'
-        if subagent_path.exists():
+        if subagent_path.is_file():
             return SerializedSessionSource(subagent_path)
         return None
 
