@@ -20,7 +20,13 @@ def _resolve_sources(paths: Iterable[Path]) -> list[SessionSource]:
     session_paths: list[Path] = []
     for path in paths:
         if path.is_dir():
-            session_paths.extend(_scan_dir_for_sessions(path))
+            main_session_path = path / 'session.jsonl'
+            if main_session_path.is_file():
+                # The given directory is a valid session directory.
+                session_paths.append(main_session_path)
+            else:
+                # Scan for sessions in the given directory.
+                session_paths.extend(_scan_dir_for_sessions(path))
         elif path.is_file():
             session_paths.append(path)
 
