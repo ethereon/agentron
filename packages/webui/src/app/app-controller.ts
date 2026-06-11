@@ -199,10 +199,14 @@ class SessionUrlObserver extends DisposableObject {
         if (currentSessionId === sessionId) {
             return;
         }
+        const url = this.generateSessionUrl(sessionId);
+        if (url == null) {
+            return;
+        }
         history[mode === 'push' ? 'pushState' : 'replaceState'](
             history.state,
             '', // historical unused parameter
-            this.generateSessionUrl(sessionId)
+            url
         );
     }
 
