@@ -3,16 +3,16 @@ from __future__ import annotations
 import json
 import time
 
-from typing import TYPE_CHECKING, Iterable, TypedDict, Literal
+from typing import TYPE_CHECKING, Iterable, TypedDict, Literal, Callable
 from pathlib import Path
 from dataclasses import dataclass
 
 from agentron.types.session import SessionMetadata
+from agentron.utils.publisher import SubscriptionStore
 
 if TYPE_CHECKING:
     from agentron.agent import Agent
     from agentron.types.message import AgentMessage
-    from agentron.utils.publisher import Subscription
 
 _CURRENT_SERIALIZATION_VERSION = 1
 
@@ -108,46 +108,49 @@ def write_messages(
         writer.write_messages(messages)
 
 
-def _resolve_auto_write_path(agent: Agent, path: Path) -> Path:
-    if path.is_dir():
-        return path / f'{agent.session_id}.jsonl'
-    return path
-
-
-def auto_write_messages(agent: Agent, path: Path) -> Subscription:
+def auto_write_messages(agent: Agent, path: Path) -> Callable[[], None]:
     """
-    Automatically write existing and future messages for the given agent to
-    the specified path. If the path is a directory, a file named after the
-    agent's session ID will be created inside it.
+    Automatically write existing and future messages for the given agent
+    under the specified path.
+
+    Returns a function that can be called to stop the automatic writing.
+
+    - The path is expected to be an existing directory.
+    - A sub-directory with the agent's session ID will be created if it doesn't already exist.
+    - Persistence for subagents will be automatically handled and scoped to the parent agent's session.
     """
-    writer = MessageWriter(_resolve_auto_write_path(agent, path))
+    if not path.exists():
+        raise ValueError(f'Path {path} does not exist.')
+    if not path.is_dir():
+        raise ValueError(f'Path {path} is not a directory.')
+
+    if agent.is_finalized:
+        # Early exit for already finalized agents.
+        return lambda: None
+
+    session_dir = path / agent.session_id
+    session_dir.mkdir(exist_ok=True)
+
+    writer = MessageWriter(session_dir / 'session.jsonl')
     write_message = writer.write_message
-    new_message_subscription: Subscription | None = None
-    finalize_subscription: Subscription | None = None
+    subs = SubscriptionStore()
 
-    def close(*, unsubscribe_finalize: bool = True) -> None:
-        nonlocal new_message_subscription, finalize_subscription
-
-        if new_message_subscription is not None:
-            new_message_subscription()
-            new_message_subscription = None
-
-        if unsubscribe_finalize and finalize_subscription is not None:
-            finalize_subscription()
-            finalize_subscription = None
-
+    def close() -> None:
+        subs.clear()
         writer.close()
 
     def on_finalize(_: None) -> None:
-        close(unsubscribe_finalize=False)
-
-    if agent.is_finalized:
         close()
-        return lambda: None
+
+    def on_subagent_created(subagent: Agent) -> None:
+        auto_write_messages(subagent, session_dir)
 
     try:
-        new_message_subscription = agent.on_new_message.subscribe(write_message)
-        finalize_subscription = agent.on_finalize.subscribe(on_finalize)
+        subs.add(
+            agent.on_new_message.subscribe(write_message),
+            agent.on_finalize.subscribe(on_finalize),
+            agent.on_subagent_created.subscribe(on_subagent_created),
+        )
         writer.maybe_write_header(
             session_id=agent.session_id,
             metadata=agent.metadata,

@@ -1,21 +1,21 @@
 import * as style from '../gen/styles/app.js';
 
-import { type AppController } from './app-controller.js';
-
 import { div } from '@ethereon/ein/dom/utils';
-import { SessionView } from '../session/session-view.js';
 import { DisposableObject } from '@ethereon/ein/disposable';
-import { AppHeader } from './app-header.js';
 import { DisposableElementParent } from '@ethereon/ein/dom/disposable';
+
+import { app } from './app-controller.js';
+import { SessionView } from '../session/session-view.js';
+import { AppHeader } from './app-header.js';
 
 export class AppView extends DisposableObject {
     readonly container: HTMLElement;
 
     private readonly header: AppHeader;
 
-    constructor(app: AppController) {
+    constructor() {
         super();
-        this.header = this.disposables.add(new AppHeader(app));
+        this.header = this.disposables.add(new AppHeader());
 
         const sessionParent = this.disposables.add(new DisposableElementParent<SessionView>());
         sessionParent.container.classList.add(style.app_content);

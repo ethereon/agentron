@@ -2,28 +2,120 @@ import { DisposableObject, DisposableStore } from '@ethereon/ein/disposable';
 import * as style from '../gen/styles/app.js';
 
 import { div } from '@ethereon/ein/dom/utils';
-import { AppController } from './app-controller.js';
-import { SessionController } from '../session/session-controller.js';
+import { SessionController, SessionItem } from '../session/session-controller.js';
 import { TokenUsage } from '@ethereon/agentypes/messages.js';
 import { showSessionSelector } from '../session/session-selector.js';
+import { app } from './app-controller.js';
+import { makeIcon } from '../icons.js';
 
 export class AppHeader extends DisposableObject {
     readonly container: HTMLElement;
 
-    constructor(app: AppController) {
+    constructor() {
         super();
 
         const appIcon = makeAppIcon();
-        const contextMeter = this.disposables.add(new ContextMeter(app));
-        const sessionSelector = this.disposables.add(new SessionSelectorButton(app));
+        const contextMeter = this.disposables.add(new ContextMeter());
+        const sessionSelector = this.disposables.add(new SessionSelectorButton());
+        const sessionNavBar = this.disposables.add(new SessionNavBar());
 
         this.container = div({
             class: style.app_header,
-            child: div({
-                class: style.app_header_content,
-                children: [appIcon, sessionSelector.container, contextMeter.container]
+            children: [
+                div({
+                    class: style.app_header_content,
+                    children: [appIcon, contextMeter.container, sessionSelector.container]
+                }),
+                sessionNavBar.container
+            ]
+        });
+    }
+}
+
+class SessionNavBar extends DisposableObject {
+    readonly container: HTMLElement;
+
+    private renderGeneration = 0;
+
+    constructor() {
+        super();
+        this.container = div({ class: style.session_nav_bar });
+        this.container.style.display = 'none';
+
+        this.disposables.add(
+            app.activeSession.subscribe(session => {
+                this.renderSession(session);
+            })
+        );
+    }
+
+    private async renderSession(session: SessionController | undefined) {
+        const generation = ++this.renderGeneration;
+        this.container.replaceChildren();
+
+        const isSubagent = session?.metadata.parent_session_id != null;
+        if (!isSubagent) {
+            this.container.style.display = 'none';
+            return;
+        }
+
+        const breadcrumb = await this.getBreadcrumb(session);
+        if (this.isDisposed || generation !== this.renderGeneration) {
+            return;
+        }
+
+        this.container.replaceChildren(this.renderBreadcrumb(breadcrumb));
+        this.container.style.display = '';
+    }
+
+    private async getBreadcrumb(session: SessionController): Promise<SessionItem[]> {
+        const breadcrumb: SessionItem[] = [
+            {
+                id: session.id,
+                metadata: session.metadata
+            }
+        ];
+
+        let parentSessionId = session.metadata.parent_session_id;
+        while (parentSessionId != null) {
+            const parentSession = await app.getSessionItem(parentSessionId);
+            if (parentSession == null) {
+                break;
+            }
+
+            breadcrumb.unshift(parentSession);
+            parentSessionId = parentSession.metadata.parent_session_id;
+        }
+
+        return breadcrumb;
+    }
+
+    private renderBreadcrumb(breadcrumb: SessionItem[]): HTMLElement {
+        return div({
+            class: style.session_nav_bar_content,
+            children: breadcrumb.flatMap((session, index) => {
+                const link = document.createElement('a');
+                link.classList.add(style.session_nav_bar_link);
+                link.textContent = index === 0 ? 'Main' : this.getSubagentTitle(session);
+                link.href = app.generateSessionUrl(session.id)?.toString() ?? '#';
+
+                if (index === breadcrumb.length - 1) {
+                    link.ariaCurrent = 'page';
+                }
+
+                if (index === 0) {
+                    return [link];
+                }
+
+                const separator = makeIcon('ChevronRight');
+                separator.classList.add(style.session_nav_bar_separator);
+                return [separator, link];
             })
         });
+    }
+
+    private getSubagentTitle(session: SessionItem): string {
+        return session.metadata.title ?? session.metadata.invoking_tool_call ?? 'Subagent';
     }
 }
 
@@ -34,7 +126,7 @@ class ContextMeter extends DisposableObject {
     private activeSession?: SessionController;
     private contextWindow?: number;
 
-    constructor(app: AppController) {
+    constructor() {
         super();
         this.sessionSubs = this.disposables.add(new DisposableStore());
         this.disposables.add(
@@ -126,7 +218,7 @@ class ContextMeter extends DisposableObject {
 class SessionSelectorButton extends DisposableObject {
     readonly container: HTMLElement;
 
-    constructor(app: AppController) {
+    constructor() {
         super();
         this.container = makeHeaderIcon(
             '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"><path fill="currentColor" d="M17.857 12.509a.6.6 0 0 1 .069.485.65.65 0 0 1-.32.39l-8.285 4.49a.73.73 0 0 1-.696 0L.34 13.384a.65.65 0 0 1-.313-.391.6.6 0 0 1 .072-.482.7.7 0 0 1 .417-.297.74.74 0 0 1 .52.061l7.94 4.302 7.94-4.302a.74.74 0 0 1 .522-.064c.176.044.327.151.419.298m-.942-4.082-7.94 4.301-7.94-4.301a.74.74 0 0 0-.506-.04.68.68 0 0 0-.399.292.6.6 0 0 0-.074.468c.04.158.143.297.29.388l8.284 4.49a.73.73 0 0 0 .696 0l8.285-4.49a.7.7 0 0 0 .205-.165.597.597 0 0 0 .051-.716.7.7 0 0 0-.18-.19.72.72 0 0 0-.516-.122.7.7 0 0 0-.256.085M0 5.132c0-.113.032-.223.093-.32a.67.67 0 0 1 .252-.234L8.63.088a.73.73 0 0 1 .696 0l8.285 4.49c.104.056.19.137.25.234a.61.61 0 0 1 0 .64.67.67 0 0 1-.25.234l-8.285 4.49a.73.73 0 0 1-.696 0L.345 5.686a.67.67 0 0 1-.252-.234.6.6 0 0 1-.093-.32m2.06 0L8.976 8.88l6.915-3.748-6.915-3.748z"/></svg>',
@@ -135,7 +227,7 @@ class SessionSelectorButton extends DisposableObject {
         this.container.onclick = ev => {
             ev.preventDefault();
             ev.stopPropagation();
-            showSessionSelector(app);
+            showSessionSelector();
         };
         this.disposables.add(
             app.sessions.subscribe(sessions => {

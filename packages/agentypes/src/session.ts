@@ -8,4 +8,6 @@ export interface SessionMetadata {
     model?: Model;
     cwd?: string;
     created?: number;
+    parent_session_id?: string;
+    invoking_tool_call?: string;
 }

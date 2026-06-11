@@ -23,6 +23,7 @@ import {
 } from './message-view-utils.js';
 import { resolveToolCallPreview } from './tool-call-preview.js';
 import { IToolDetailsView, makeToolDetailsView } from './tool-details-view.js';
+import { app } from '../app/app-controller.js';
 
 export type AgentMessageView = SystemMessageView | UserMessageView | AssistantMessageView;
 
@@ -346,5 +347,21 @@ class ToolCallView {
         this.detailsView?.renderResults(toolResult);
         this.statusIcon.replaceChildren(makeIcon(toolResult.success ? 'Check' : 'Cross'));
         this.statusIcon.classList.toggle(style.failed, !toolResult.success);
+
+        // Check if this tool call spawned any subagents.
+        const subagent_ids = toolResult.subagent_ids;
+        if (subagent_ids != null && subagent_ids.length > 0) {
+            // Insert link to subagent session(s).
+            const subagentLinks = subagent_ids.map(subagentId => {
+                const link = document.createElement('a');
+                link.classList.add(style.tool_call_subagent_link);
+                link.textContent = 'Subagent';
+                link.href = app.generateSubagentSessionUrl(subagentId)?.toString() ?? '#';
+                // Prevent the usual expansion behavior.
+                link.onmousedown = ev => ev.stopImmediatePropagation();
+                return link;
+            });
+            this.statusIcon.after(...subagentLinks);
+        }
     }
 }

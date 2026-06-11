@@ -70,7 +70,7 @@ asyncio.run(main())
 
 ## Models
 
-Models can be accessed in multiple ways:
+Models can be specified in multiple ways:
 
 - As `<provider>:<model name>` strings (for example, `openai:gpt-5.4`) when using convenience functions like `make_agent`
 - Via the [`get_model`](agentron/model/repo.py) function
@@ -172,14 +172,15 @@ The built-in `agentron code` command provides a minimal coding agent implementat
 
 ## Persistence
 
-Specifying the `output` argument causes Agentron to persist session events (metadata, messages, ...) as JSONL files, written as events complete:
+Specifying the `output` argument causes Agentron to persist session events (metadata, messages, ...) as JSONL files, written as each event completes:
 
 ```python
 agent = make_agent(
-    # If this path points to an existing directory, session events will
-    # automatically be written to a file under it named <session_id>.jsonl.
-    # Otherwise, the path is treated as the target JSONL file.
-    output="/path/to/output",
+    # A sub-directory will be automatically created for the session under
+    # the given path and events will be automatically written to it.
+    # Any spawned subagents will also automatically persist their
+    # sessions to this sub-directory.
+    output="~/sessions",
     ...
 )
 ```
@@ -212,7 +213,7 @@ agentron web <path to .jsonl or a directory containing one or more .jsonl files>
 
 ## Agent Events
 
-The `Agent` instance exposes a set of _publishers_ that trigger whenever certain events occur:
+The `Agent` instance exposes a set of _publishers_ that emit updates when certain events occur:
 
 - `on_new_message`: Published whenever a new message (user, assistant, ...) is added to the session
 - `on_streaming_message`: Published as a new assistant response streams in
@@ -233,6 +234,41 @@ unsubscribe = agent.on_new_message.subscribe(handle_new_message)
 # Stop receiving new message events
 unsubscribe()
 ```
+
+## Subagents
+
+Agentron supports creating subagents. They're essentially treated as tools that create their own `Agent` instance for some specialized task.
+
+The existing `make_agent` utility function supports subagent creation via the `parent` keyword argument. For instance:
+
+```python
+async def review_code(code: str) -> str:
+    """
+    Reviews the given code and returns feedback.
+
+    Args:
+        code: The code to be reviewed.
+    """
+
+    subagent = make_agent(
+        system_prompt='You are a code review assistant. Provide feedback on the following code.',
+        parent=Agent.get_active(),
+        terminal=True,
+    )
+
+    with subagent:
+        response = await subagent.ask(prompt=code)
+
+    return response or 'No feedback.'
+```
+
+- The `Agent.get_active()` class method automatically provides the invoking parent agent when called within tool calls.
+- Notice that the `model` and `api_key` arguments have been skipped. In this case, they're automatically inherited from the parent model. However, a different model (e.g.: a lighter-weight one) may be explicitly provided as well.
+- The parent agent automatically detects this tool call as having created a subagent and tracks its session ID in the persisted tool call event.
+- When persistence is enabled for the parent session, the event data for the subagent is also automatically persisted (scoped under the parent's session directory).
+- The subagent does not automatically inherit tools from the parent agent.
+
+See [examples/simple_subagent.py](examples/simple_subagent.py) for the full example.
 
 ## Development
 

@@ -109,6 +109,7 @@ class AssistantMessage(BaseMessage):
 class ToolResult(TypedDict):
     success: bool
     content: Content
+    subagent_ids: NotRequired[list[str]]
 
 
 class ToolResultMessage(BaseMessage):

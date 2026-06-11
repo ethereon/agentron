@@ -88,7 +88,7 @@ async function build() {
         ),
 
         esbuild.build({
-            entryPoints: [path.join(kProjectRoot, 'src', 'app.ts')],
+            entryPoints: [path.join(kProjectRoot, 'src', 'main.ts')],
             bundle: true,
             outfile: path.join(kOutputDir, 'agentron-webui.js'),
             sourcemap: 'linked'

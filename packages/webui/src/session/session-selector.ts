@@ -1,11 +1,12 @@
 import * as style from '../gen/styles/session.js';
 
 import { div } from '@ethereon/ein/dom/utils';
-import { AppController } from '../app/app-controller.js';
 import { DisposableObject } from '@ethereon/ein/disposable';
 import { listenForEvent } from '@ethereon/ein/dom/event-listener';
 import { Observable } from '@ethereon/ein/publisher';
 import { debounce } from '@ethereon/ein/rate';
+
+import { app } from '../app/app-controller.js';
 import { SessionItem } from './session-controller.js';
 
 class SessionSelector extends DisposableObject {
@@ -14,10 +15,7 @@ class SessionSelector extends DisposableObject {
     private readonly selectedSession: Observable<SessionItem | undefined>;
     private readonly push: () => void;
 
-    constructor(
-        readonly app: AppController,
-        sessions: SessionItem[]
-    ) {
+    constructor(sessions: SessionItem[]) {
         super();
 
         const popover = (this.popover = div({
@@ -168,7 +166,7 @@ class SessionSelector extends DisposableObject {
         if (session !== this.selectedSession.value) {
             this.selectedSession.publish(session);
             if (immediate) {
-                this.app.setActiveSession(this.selectedSession.value);
+                app.setActiveSession(this.selectedSession.value);
             } else {
                 this.push();
             }
@@ -176,11 +174,11 @@ class SessionSelector extends DisposableObject {
     }
 }
 
-export function showSessionSelector(app: AppController): void {
+export function showSessionSelector(): void {
     const sessions = app.sessions.value;
     if (sessions == null || sessions.length === 0) {
         console.warn('[SessionSelector] No sessions available to select.');
         return;
     }
-    new SessionSelector(app, sessions);
+    new SessionSelector(sessions);
 }

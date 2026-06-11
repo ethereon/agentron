@@ -11,6 +11,7 @@ export const tool_call_header = 'at-tool-call-header';
 export const tool_call_name = 'at-tool-call-name';
 export const tool_call_result = 'at-tool-call-result';
 export const tool_call_status_icon = 'at-tool-call-status-icon';
+export const tool_call_subagent_link = 'at-tool-call-subagent-link';
 export const failed = 'failed';
 export const prompt = 'prompt';
 export const success = 'success';
