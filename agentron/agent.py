@@ -97,6 +97,7 @@ class Agent:
             self.on_streaming_message,
             self.on_tool_call,
             self.on_finalize,
+            self.on_subagent_created,
         )
 
     def register_subagent(self, subagent: Agent) -> None:
