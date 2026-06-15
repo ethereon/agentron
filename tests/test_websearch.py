@@ -5,7 +5,7 @@ import unittest
 
 from urllib.parse import parse_qs, urlparse
 
-from agentron.kit.websearch import BraveWebSearch, format_brave_search_results
+from agentron.kit.websearch.brave import BraveWebSearch, format_brave_search_results
 from agentron.tool.parser import generate_tool_schema
 
 
@@ -71,10 +71,10 @@ class TestBraveWebSearchExecution(unittest.TestCase):
             seen['timeout'] = timeout
             return _FakeResponse(payload)
 
-        import agentron.kit.websearch as websearch
+        import agentron.kit.websearch.brave as brave
 
-        original_urlopen = websearch.urlopen
-        websearch.urlopen = fake_urlopen
+        original_urlopen = brave.urlopen
+        brave.urlopen = fake_urlopen
         try:
             tool = BraveWebSearch(
                 api_key='test-token',
@@ -88,7 +88,7 @@ class TestBraveWebSearchExecution(unittest.TestCase):
 
             result = tool('agentron', count=5, offset=2)
         finally:
-            websearch.urlopen = original_urlopen
+            brave.urlopen = original_urlopen
 
         parsed = urlparse(seen['url'])
         query = parse_qs(parsed.query)
@@ -115,10 +115,10 @@ class TestBraveWebSearchExecution(unittest.TestCase):
         def fake_urlopen(request, timeout):
             return _FakeResponse(payload)
 
-        import agentron.kit.websearch as websearch
+        import agentron.kit.websearch.brave as brave
 
-        original_urlopen = websearch.urlopen
-        websearch.urlopen = fake_urlopen
+        original_urlopen = brave.urlopen
+        brave.urlopen = fake_urlopen
         try:
             tool = BraveWebSearch(
                 api_key='test-token',
@@ -127,7 +127,7 @@ class TestBraveWebSearchExecution(unittest.TestCase):
 
             result = tool('agentron')
         finally:
-            websearch.urlopen = original_urlopen
+            brave.urlopen = original_urlopen
 
         self.assertEqual(result, 'type=search')
 
