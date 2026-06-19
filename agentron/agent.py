@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-import uuid
 
 from typing import Iterable
 from contextvars import ContextVar
 
+from agentron.idgen import generate_session_id
 from agentron.types.model import ModelReasoningLevel
 from agentron.types.core import LLMBackend
 from agentron.types.session import SessionMetadata
@@ -48,7 +48,7 @@ class Agent:
         messages: Iterable[AgentMessage] | None = None,
         metadata: SessionMetadata | None = None,
     ):
-        self.session_id = session_id or uuid.uuid4().hex
+        self.session_id = session_id or generate_session_id()
         self.messages: list[AgentMessage] = list(messages) if messages else []
         self.tool_manager: ToolManager | None = None
         self.backend: LLMBackend | None = None
